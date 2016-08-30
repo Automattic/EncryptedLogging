@@ -1,7 +1,5 @@
 package com.automattic.encryptedlogging.store;
 
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 import com.automattic.encryptedlogging.Dispatcher;
 import com.automattic.encryptedlogging.annotations.action.Action;
 
