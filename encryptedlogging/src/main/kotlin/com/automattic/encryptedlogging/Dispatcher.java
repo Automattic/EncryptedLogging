@@ -1,12 +1,12 @@
 package com.automattic.encryptedlogging;
 
 import org.greenrobot.eventbus.EventBus;
+import com.automattic.encryptedlogging.annotations.action.Action;
 import com.automattic.encryptedlogging.store.Store;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.AppLog.T;
 
 import javax.inject.Singleton;
-
 
 @Singleton
 public class Dispatcher {
@@ -31,7 +31,7 @@ public class Dispatcher {
         mBus.unregister(object);
     }
 
-    public void dispatch(com.automattic.encryptedlogging.annotations.action.Action action) {
+    public void dispatch(Action action) {
         AppLog.d(T.API, "Dispatching action: " + action.getType().getClass().getSimpleName()
                 + "-" + action.getType().name());
         post(action);
