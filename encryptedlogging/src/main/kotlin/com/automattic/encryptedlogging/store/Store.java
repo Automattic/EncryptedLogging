@@ -1,6 +1,7 @@
 package com.automattic.encryptedlogging.store;
 
 import com.automattic.encryptedlogging.Dispatcher;
+import com.automattic.encryptedlogging.FluxCError;
 import com.automattic.encryptedlogging.annotations.action.Action;
 
 public abstract class Store {
@@ -11,7 +12,7 @@ public abstract class Store {
         mDispatcher.register(this);
     }
 
-    public interface OnChangedError {}
+    public interface OnChangedError extends FluxCError {}
 
     public static class OnChanged<T extends OnChangedError> {
         public T error = null;
