@@ -14,6 +14,7 @@ import com.android.volley.Request;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 
+import com.automattic.encryptedlogging.FluxCError;
 import com.automattic.encryptedlogging.store.AccountStore.AuthenticateErrorPayload;
 import com.automattic.encryptedlogging.utils.ErrorUtils.OnUnexpectedError;
 import org.wordpress.android.util.AppLog;
@@ -45,7 +46,7 @@ public abstract class BaseRequest<T> extends Request<T> {
     protected final Map<String, String> mHeaders = new HashMap<>(2);
     private BaseErrorListener mErrorListener;
 
-    public static class BaseNetworkError {
+    public static class BaseNetworkError implements FluxCError {
         public GenericErrorType type;
         public String message;
         public VolleyError volleyError;
