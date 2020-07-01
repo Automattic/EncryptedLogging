@@ -3,6 +3,7 @@ package com.automattic.encryptedlogging.store
 import com.automattic.encryptedlogging.model.EncryptedLog
 import com.automattic.encryptedlogging.model.EncryptedLogUploadState.FAILED
 import com.automattic.encryptedlogging.model.EncryptedLogUploadState.QUEUED
+import com.automattic.encryptedlogging.model.EncryptedLogUploadState.UPLOADING
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
 import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
 import java.io.File
@@ -44,7 +45,10 @@ class EncryptedLogStore @Inject constructor(
     }
 
     private suspend fun uploadNext() {
-        // TODO: Don't upload if we are already uploading something
+        if (encryptedLogSqlUtils.getNumberOfEncryptedLogsUploading() > 0) {
+            // We are already uploading another log file
+            return
+        }
         val (logsToUpload, logsToDelete) = encryptedLogSqlUtils.getEncryptedLogsForUpload()
                 .partition { it.file.exists() }
         // Delete any queued encrypted log records if the log file no longer exists
@@ -56,6 +60,10 @@ class EncryptedLogStore @Inject constructor(
     }
 
     private suspend fun uploadEncryptedLog(encryptedLog: EncryptedLog) {
+        // Update the upload state of the log
+        encryptedLog.copy(uploadState = UPLOADING).let {
+            encryptedLogSqlUtils.insertOrUpdateEncryptedLog(it)
+        }
         encryptedLogRestClient.uploadLog(encryptedLog.uuid, encryptedLog.file)
     }
 
@@ -79,7 +87,8 @@ class EncryptedLogStore @Inject constructor(
     }
 
     private suspend fun deleteEncryptedLog(encryptedLog: EncryptedLog) {
-        // TODO: Delete log file
-        encryptedLogSqlUtils.deleteEncryptedLog(encryptedLog.uuid)
+        // TODO: Do we want to delete the unencrypted log file?
+        // TODO: Delete the encrypted log file if we save one
+        encryptedLogSqlUtils.deleteEncryptedLogs(listOf(encryptedLog))
     }
 }

@@ -8,6 +8,7 @@ import com.automattic.encryptedlogging.model.EncryptedLogModel
 import com.automattic.encryptedlogging.model.EncryptedLogUploadState
 import com.automattic.encryptedlogging.model.EncryptedLogUploadState.FAILED
 import com.automattic.encryptedlogging.model.EncryptedLogUploadState.QUEUED
+import com.automattic.encryptedlogging.model.EncryptedLogUploadState.UPLOADING
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,6 +23,12 @@ class EncryptedLogSqlUtils @Inject constructor() {
     fun getEncryptedLog(uuid: String): EncryptedLog? {
         return getEncryptedLogModel(uuid)?.let { EncryptedLog.fromEncryptedLogModel(it) }
     }
+
+    fun getNumberOfEncryptedLogsUploading(): Long = WellSql.select(EncryptedLogModel::class.java)
+            .where()
+            .equals(EncryptedLogModelTable.UPLOAD_STATE_DB_VALUE, UPLOADING)
+            .endWhere()
+            .count()
 
     // TODO: Update the tests for this
     fun deleteEncryptedLogs(encryptedLogList: List<EncryptedLog>) {
