@@ -1,9 +1,10 @@
 package com.automattic.encryptedlogging.store
 
-import com.automattic.encryptedlogging.model.EncryptedLog
-import com.automattic.encryptedlogging.model.EncryptedLogUploadState.FAILED
-import com.automattic.encryptedlogging.model.EncryptedLogUploadState.QUEUED
-import com.automattic.encryptedlogging.model.EncryptedLogUploadState.UPLOADING
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptionUtils
+import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
 import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
 import java.io.File
@@ -19,6 +20,8 @@ class EncryptedLogStore @Inject constructor(
     private val encryptedLogRestClient: EncryptedLogRestClient,
     private val encryptedLogSqlUtils: EncryptedLogSqlUtils
 ) {
+    private val keyPair = EncryptionUtils.sodium.cryptoBoxKeypair()
+
     /**
      * Document the logic for when uploads will happen:
      *
@@ -29,12 +32,16 @@ class EncryptedLogStore @Inject constructor(
      * 4. At application start
      * 5. After a timer - maybe due to [handleFailedUpload]
      */
+    // TODO: Remove `suspend` and move the logic to bg thread and return asap
     private suspend fun queueLogForUpload(uuid: String, file: File) {
         // If the log file doesn't exist, there is nothing we can do
         if (!file.exists()) {
             return
         }
-        val encryptedLog = EncryptedLog(uuid = uuid, file = file)
+        val encryptedLog = EncryptedLog(
+                uuid = uuid,
+                file = file
+        )
         encryptedLogSqlUtils.insertOrUpdateEncryptedLog(encryptedLog)
         uploadNext()
     }
@@ -64,7 +71,12 @@ class EncryptedLogStore @Inject constructor(
         encryptedLog.copy(uploadState = UPLOADING).let {
             encryptedLogSqlUtils.insertOrUpdateEncryptedLog(it)
         }
-        encryptedLogRestClient.uploadLog(encryptedLog.uuid, encryptedLog.file)
+        val contents = LogEncrypter(
+                sourceFile = encryptedLog.file,
+                uuid = encryptedLog.uuid,
+                publicKey = keyPair.publicKey
+        ).read()
+        encryptedLogRestClient.uploadLog(encryptedLog.uuid, contents)
     }
 
     private suspend fun handleSuccessfulUpload(encryptedLog: EncryptedLog) {
@@ -86,9 +98,8 @@ class EncryptedLogStore @Inject constructor(
         uploadNextWithBackOffTiming()
     }
 
-    private suspend fun deleteEncryptedLog(encryptedLog: EncryptedLog) {
+    private fun deleteEncryptedLog(encryptedLog: EncryptedLog) {
         // TODO: Do we want to delete the unencrypted log file?
-        // TODO: Delete the encrypted log file if we save one
         encryptedLogSqlUtils.deleteEncryptedLogs(listOf(encryptedLog))
     }
 }

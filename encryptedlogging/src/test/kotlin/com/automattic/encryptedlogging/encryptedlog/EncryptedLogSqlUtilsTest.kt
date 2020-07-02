@@ -8,12 +8,12 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import com.automattic.encryptedlogging.SingleStoreWellSqlConfigForTests
-import com.automattic.encryptedlogging.model.EncryptedLog
-import com.automattic.encryptedlogging.model.EncryptedLogModel
-import com.automattic.encryptedlogging.model.EncryptedLogUploadState
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState
 import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
 import java.io.File
-import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit.SECONDS
 import java.util.Date
 
 private const val TEST_UUID = "TEST_UUID"
@@ -89,7 +89,7 @@ class EncryptedLogSqlUtilsTest {
         uploadState: EncryptedLogUploadState = EncryptedLogUploadState.CREATED
     ) = EncryptedLog(
             // Bypass the annoying milliseconds comparison issue
-            dateCreated = Date.from(dateCreated.toInstant().truncatedTo(ChronoUnit.SECONDS)),
+            dateCreated = Date.from(dateCreated.toInstant().truncatedTo(SECONDS)),
             uuid = uuid,
             file = File(filePath),
             uploadState = uploadState

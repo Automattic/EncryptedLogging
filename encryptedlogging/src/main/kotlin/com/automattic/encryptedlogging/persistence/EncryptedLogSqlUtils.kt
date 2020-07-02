@@ -3,12 +3,11 @@ package com.automattic.encryptedlogging.persistence
 import com.wellsql.generated.EncryptedLogModelTable
 import com.yarolegovich.wellsql.SelectQuery
 import com.yarolegovich.wellsql.WellSql
-import com.automattic.encryptedlogging.model.EncryptedLog
-import com.automattic.encryptedlogging.model.EncryptedLogModel
-import com.automattic.encryptedlogging.model.EncryptedLogUploadState
-import com.automattic.encryptedlogging.model.EncryptedLogUploadState.FAILED
-import com.automattic.encryptedlogging.model.EncryptedLogUploadState.QUEUED
-import com.automattic.encryptedlogging.model.EncryptedLogUploadState.UPLOADING
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.QUEUED
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
 import javax.inject.Inject
 import javax.inject.Singleton
 
