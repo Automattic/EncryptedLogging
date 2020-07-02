@@ -11,6 +11,7 @@ import com.automattic.encryptedlogging.SingleStoreWellSqlConfigForTests
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.QUEUED
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
 import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
@@ -102,6 +103,36 @@ class EncryptedLogSqlUtilsTest {
             }
             assertThat(sqlUtils.getNumberOfUploadingEncryptedLogs()).isEqualTo(numberOfLogs.toLong())
         }
+    }
+
+    @Test
+    fun `test get encrypted logs for upload includes QUEUED logs`() {
+        sqlUtils.insertOrUpdateEncryptedLog(createTestEncryptedLog(uploadState = QUEUED))
+
+        assertThat(sqlUtils.getEncryptedLogsForUpload()).isNotEmpty
+    }
+
+    @Test
+    fun `test get encrypted logs for upload includes FAILED logs`() {
+        sqlUtils.insertOrUpdateEncryptedLog(createTestEncryptedLog(uploadState = FAILED))
+
+        assertThat(sqlUtils.getEncryptedLogsForUpload()).isNotEmpty
+    }
+
+    @Test
+    fun `test get encrypted logs for upload does not include UPLOADING logs`() {
+        sqlUtils.insertOrUpdateEncryptedLog(createTestEncryptedLog(uploadState = UPLOADING))
+
+        assertThat(sqlUtils.getEncryptedLogsForUpload()).isEmpty()
+    }
+
+    @Test
+    fun `test get encrypted logs for upload is in correct order`() {
+        sqlUtils.insertOrUpdateEncryptedLog(createTestEncryptedLog(uploadState = FAILED))
+        sqlUtils.insertOrUpdateEncryptedLog(createTestEncryptedLog(uploadState = QUEUED))
+
+        // Queued logs should be uploaded before the failed ones
+        assertThat(sqlUtils.getEncryptedLogsForUpload().firstOrNull()?.uploadState).isEqualTo(QUEUED)
     }
 
     private fun getTestEncryptedLogFromDB() = sqlUtils.getEncryptedLog(TEST_UUID)

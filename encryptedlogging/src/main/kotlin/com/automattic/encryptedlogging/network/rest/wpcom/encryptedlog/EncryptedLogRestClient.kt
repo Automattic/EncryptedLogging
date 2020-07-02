@@ -7,7 +7,6 @@ import com.automattic.encryptedlogging.network.EncryptedLogUploadRequest
 import com.automattic.encryptedlogging.network.rest.wpcom.auth.AppSecrets
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.LogUploadResult.LogUploadFailed
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.LogUploadResult.LogUploaded
-import java.io.File
 import javax.inject.Singleton
 import kotlin.coroutines.resume
 
