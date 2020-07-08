@@ -1,5 +1,6 @@
 package com.automattic.encryptedlogging.store
 
+import kotlinx.coroutines.delay
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import com.automattic.encryptedlogging.Dispatcher
@@ -78,7 +79,8 @@ class EncryptedLogStore @Inject constructor(
     }
 
     private suspend fun uploadNextWithBackOffTiming() {
-        // TODO: Add a backoff timer
+        // TODO: Add a proper back off timing logic
+        delay(10000)
         uploadNext()
     }
 
