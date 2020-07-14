@@ -6,6 +6,7 @@ import org.greenrobot.eventbus.ThreadMode
 import com.automattic.encryptedlogging.Dispatcher
 import com.automattic.encryptedlogging.Payload
 import com.automattic.encryptedlogging.action.EncryptedLogAction
+import com.automattic.encryptedlogging.action.EncryptedLogAction.RESET_UPLOAD_STATES
 import com.automattic.encryptedlogging.action.EncryptedLogAction.UPLOAD_LOG
 import com.automattic.encryptedlogging.annotations.action.Action
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
@@ -52,6 +53,11 @@ class EncryptedLogStore @Inject constructor(
                     queueLogForUpload(action.payload as UploadEncryptedLogPayload)
                 }
             }
+            RESET_UPLOAD_STATES -> {
+                coroutineEngine.launch(API, this, "EncryptedLogStore: On RESET_UPLOAD_STATES") {
+                    resetUploadStates()
+                }
+            }
         }
     }
 
@@ -78,6 +84,12 @@ class EncryptedLogStore @Inject constructor(
 
         if (payload.shouldStartUploadImmediately) {
             uploadNext()
+        }
+    }
+
+    private fun resetUploadStates() {
+        encryptedLogSqlUtils.getUploadingEncryptedLogs().map {
+            it.copy(uploadState = FAILED)
         }
     }
 
