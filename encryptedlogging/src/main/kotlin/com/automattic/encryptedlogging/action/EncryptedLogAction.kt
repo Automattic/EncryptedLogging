@@ -8,5 +8,7 @@ import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLo
 @ActionEnum
 enum class EncryptedLogAction : IAction {
     @Action(payloadType = UploadEncryptedLogPayload::class)
-    UPLOAD_LOG
+    UPLOAD_LOG,
+    @Action
+    RESET_UPLOAD_STATES
 }
