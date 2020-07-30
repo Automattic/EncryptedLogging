@@ -12,6 +12,8 @@ import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.Tes
 import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.TestEvents.ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
 import com.automattic.encryptedlogging.store.EncryptedLogStore
 import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded
+import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded.EncryptedLogFailedToUpload
+import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.InvalidRequest
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.TooManyRequests
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogPayload
@@ -77,21 +79,26 @@ class ReleaseStack_EncryptedLogTest : ReleaseStack_Base() {
     @Suppress("unused")
     @Subscribe
     fun onEncryptedLogUploaded(event: OnEncryptedLogUploaded) {
-        if (event.isError) {
-            when (event.error) {
-                is TooManyRequests -> {
-                    // If we are hitting too many requests error, there really isn't much we can do about it
-                }
-                is InvalidRequest -> {
-                    assertThat(nextEvent, `is`(ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID))
-                }
-                else -> {
-                    throw AssertionError("Unexpected error occurred in onEncryptedLogUploaded: ${event.error}")
+        when (event) {
+            is EncryptedLogUploadedSuccessfully -> {
+                assertThat(nextEvent, `is`(ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY))
+                assertThat(testIds(), hasItem(event.uuid))
+            }
+            is EncryptedLogFailedToUpload -> {
+                when (event.error) {
+                    is TooManyRequests -> {
+                        // If we are hitting too many requests, we just ignore the test as restarting it will not help
+                        assertThat(event.willRetry, `is`(true))
+                    }
+                    is InvalidRequest -> {
+                        assertThat(nextEvent, `is`(ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID))
+                        assertThat(event.willRetry, `is`(false))
+                    }
+                    else -> {
+                        throw AssertionError("Unexpected error occurred in onEncryptedLogUploaded: ${event.error}")
+                    }
                 }
             }
-        } else {
-            assertThat(nextEvent, `is`(ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY))
-            assertThat(testIds(), hasItem(event.uuid))
         }
         mCountDownLatch.countDown()
     }
