@@ -1,6 +1,5 @@
 package com.automattic.encryptedlogging.store
 
-import android.util.Base64
 import com.goterl.lazycode.lazysodium.utils.Key
 import kotlinx.coroutines.delay
 import org.greenrobot.eventbus.Subscribe
@@ -14,7 +13,6 @@ import com.automattic.encryptedlogging.annotations.action.Action
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptionUtils
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.BaseRequest.BaseNetworkError
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
@@ -184,14 +182,6 @@ class EncryptedLogStore @Inject constructor(
 
     private fun deleteEncryptedLog(encryptedLog: EncryptedLog) {
         encryptedLogSqlUtils.deleteEncryptedLogs(listOf(encryptedLog))
-    }
-
-    private fun createPublicKey(publicKeyAsString: String): Key {
-        return if (publicKeyAsString.isNotBlank()) {
-            Key.fromBytes(Base64.decode(publicKeyAsString.toByteArray(), Base64.DEFAULT))
-        } else {
-            EncryptionUtils.sodium.cryptoBoxKeypair().publicKey
-        }
     }
 
     /**
