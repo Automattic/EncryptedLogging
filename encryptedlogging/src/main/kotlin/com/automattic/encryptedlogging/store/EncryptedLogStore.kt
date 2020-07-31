@@ -25,6 +25,7 @@ import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploa
 import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded.EncryptedLogFailedToUpload
 import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.InvalidRequest
+import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.MissingFile
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.NoConnection
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.TooManyRequests
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.Unknown
@@ -115,17 +116,20 @@ class EncryptedLogStore @Inject constructor(
             // We are already uploading another log file
             return
         }
-        val (logsToUpload, logsToDelete) = encryptedLogSqlUtils.getEncryptedLogsForUpload()
-                .partition { it.file.exists() }
-        // Delete any queued encrypted log records if the log file no longer exists
-        encryptedLogSqlUtils.deleteEncryptedLogs(logsToDelete)
         // We want to upload a single file at a time
-        logsToUpload.firstOrNull()?.let {
+        encryptedLogSqlUtils.getEncryptedLogsForUpload().firstOrNull()?.let {
             uploadEncryptedLog(it)
         }
     }
 
     private suspend fun uploadEncryptedLog(encryptedLog: EncryptedLog) {
+        // If the log file doesn't exist, fail immediately and try the next log file
+        if (!encryptedLog.file.exists()) {
+            handleFailedUpload(encryptedLog, MissingFile)
+            uploadNext()
+            return
+        }
+
         // Update the upload state of the log
         encryptedLog.copy(uploadState = UPLOADING).let {
             encryptedLogSqlUtils.insertOrUpdateEncryptedLog(it)
@@ -194,6 +198,9 @@ class EncryptedLogStore @Inject constructor(
             is InvalidRequest -> {
                 IRRECOVERABLE_FAILURE
             }
+            is MissingFile -> {
+                IRRECOVERABLE_FAILURE
+            }
             is Unknown -> {
                 when {
                     (500..599).contains(error.statusCode) -> {
@@ -245,6 +252,7 @@ class EncryptedLogStore @Inject constructor(
         object InvalidRequest : UploadEncryptedLogError()
         object TooManyRequests : UploadEncryptedLogError()
         object NoConnection : UploadEncryptedLogError()
+        object MissingFile : UploadEncryptedLogError()
     }
 
     /**
