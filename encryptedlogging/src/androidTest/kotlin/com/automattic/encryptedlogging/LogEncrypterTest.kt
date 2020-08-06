@@ -15,6 +15,7 @@ import com.automattic.encryptedlogging.model.encryptedlogging.EncryptionUtils
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.model.encryptedlogging.SecretStreamKey
 import java.util.UUID
+import kotlin.random.Random.Default.nextInt
 
 class LogEncrypterTest {
     private lateinit var keypair: KeyPair
@@ -65,6 +66,12 @@ class LogEncrypterTest {
     @Test
     fun testThatLogsCanBeDecrypted() {
         val testLogString = UUID.randomUUID().toString()
+        assertEquals(testLogString, decryptContent(encryptContent(testLogString)))
+    }
+
+    @Test
+    fun testThatMultilineLogsCanBeDecrypted() {
+        val testLogString = (0..(nextInt(100) + 2)).joinToString(separator = "\n") { UUID.randomUUID().toString() }
         assertEquals(testLogString, decryptContent(encryptContent(testLogString)))
     }
 
