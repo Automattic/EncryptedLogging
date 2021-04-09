@@ -11,6 +11,8 @@ import com.automattic.encryptedlogging.network.rest.wpcom.auth.AppSecrets
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploadFailed
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploaded
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError
+import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 import kotlin.coroutines.resume
 
@@ -18,9 +20,8 @@ private const val INVALID_REQUEST = "invalid-request"
 private const val TOO_MANY_REQUESTS = "too_many_requests"
 
 @Singleton
-class EncryptedLogRestClient
-constructor(
-    private val requestQueue: RequestQueue,
+class EncryptedLogRestClient @Inject constructor(
+    @Named("regular") private val requestQueue: RequestQueue,
     private val appSecrets: AppSecrets
 ) {
     suspend fun uploadLog(logUuid: String, contents: String): UploadEncryptedLogResult {
