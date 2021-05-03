@@ -1,8 +1,8 @@
 package com.automattic.encryptedlogging.model.encryptedlogging
 
-import com.goterl.lazycode.lazysodium.interfaces.Box
-import com.goterl.lazycode.lazysodium.interfaces.SecretStream
-import com.goterl.lazycode.lazysodium.utils.Key
+import com.goterl.lazysodium.interfaces.Box
+import com.goterl.lazysodium.interfaces.SecretStream
+import com.goterl.lazysodium.utils.Key
 
 /**
  * A class representing an unencrypted Secret Stream Key.

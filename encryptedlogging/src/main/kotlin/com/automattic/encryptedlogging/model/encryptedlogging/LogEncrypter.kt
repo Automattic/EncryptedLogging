@@ -1,9 +1,9 @@
 package com.automattic.encryptedlogging.model.encryptedlogging
 
 import android.util.Base64
-import com.goterl.lazycode.lazysodium.interfaces.SecretStream
-import com.goterl.lazycode.lazysodium.interfaces.SecretStream.State
-import com.goterl.lazycode.lazysodium.utils.Key
+import com.goterl.lazysodium.interfaces.SecretStream
+import com.goterl.lazysodium.interfaces.SecretStream.State
+import com.goterl.lazysodium.utils.Key
 import dagger.Reusable
 import javax.inject.Inject
 
