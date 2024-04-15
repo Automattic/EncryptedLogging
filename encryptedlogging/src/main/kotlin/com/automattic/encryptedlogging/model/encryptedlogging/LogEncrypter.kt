@@ -4,8 +4,6 @@ import android.util.Base64
 import com.goterl.lazysodium.interfaces.SecretStream
 import com.goterl.lazysodium.interfaces.SecretStream.State
 import com.goterl.lazysodium.utils.Key
-import dagger.Reusable
-import javax.inject.Inject
 
 private const val ENCODED_ENCRYPTED_KEY_LENGTH = 108
 private const val ENCODED_HEADER_LENGTH = 32
@@ -18,8 +16,7 @@ data class EncryptedLoggingKey(val publicKey: Key)
  * @param encryptedLoggingKey The public key used to encrypt the log
  *
  */
-@Reusable
-class LogEncrypter @Inject constructor(private val encryptedLoggingKey: EncryptedLoggingKey) {
+class LogEncrypter(private val encryptedLoggingKey: EncryptedLoggingKey) {
     /**
      * Encrypts the given [text]. It also adds the given [uuid] to its headers.
      *

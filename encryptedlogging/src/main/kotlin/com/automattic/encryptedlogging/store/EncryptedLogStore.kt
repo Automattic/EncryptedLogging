@@ -1,19 +1,12 @@
 package com.automattic.encryptedlogging.store
 
-import kotlinx.coroutines.delay
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
-import com.automattic.encryptedlogging.Dispatcher
-import com.automattic.encryptedlogging.Payload
 import com.automattic.encryptedlogging.action.EncryptedLogAction
 import com.automattic.encryptedlogging.action.EncryptedLogAction.RESET_UPLOAD_STATES
 import com.automattic.encryptedlogging.action.EncryptedLogAction.UPLOAD_LOG
-import com.automattic.encryptedlogging.annotations.action.Action
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
-import com.automattic.encryptedlogging.network.BaseRequest.BaseNetworkError
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploadFailed
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploaded
@@ -29,14 +22,19 @@ import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLo
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.TooManyRequests
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.Unknown
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.UnsatisfiedLinkException
-import com.automattic.encryptedlogging.tools.CoroutineEngine
+import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.automattic.encryptedlogging.utils.PreferenceUtils.PreferenceUtilsWrapper
-import org.wordpress.android.util.AppLog
-import org.wordpress.android.util.AppLog.T.API
 import java.io.File
 import java.util.Date
-import javax.inject.Inject
-import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
+import org.wordpress.android.fluxc.annotations.action.Action
+import org.wordpress.android.util.AppLog
+import org.wordpress.android.util.AppLog.T.API
 
 /**
  * Depending on the error type, we'll keep a record of the earliest date we can try another encrypted log upload.
@@ -53,11 +51,9 @@ private const val MAX_RETRY_COUNT = 3
 private const val HTTP_STATUS_CODE_500 = 500
 private const val HTTP_STATUS_CODE_599 = 599
 
-@Singleton
-class EncryptedLogStore @Inject constructor(
+class EncryptedLogStore constructor(
     private val encryptedLogRestClient: EncryptedLogRestClient,
     private val encryptedLogSqlUtils: EncryptedLogSqlUtils,
-    private val coroutineEngine: CoroutineEngine,
     private val logEncrypter: LogEncrypter,
     private val preferenceUtils: PreferenceUtilsWrapper,
     dispatcher: Dispatcher
@@ -71,12 +67,13 @@ class EncryptedLogStore @Inject constructor(
         val actionType = action.type as? EncryptedLogAction ?: return
         when (actionType) {
             UPLOAD_LOG -> {
-                coroutineEngine.launch(API, this, "EncryptedLogStore: On UPLOAD_LOG") {
+                //todo
+                CoroutineScope(Dispatchers.IO).launch {
                     queueLogForUpload(action.payload as UploadEncryptedLogPayload)
                 }
             }
             RESET_UPLOAD_STATES -> {
-                coroutineEngine.launch(API, this, "EncryptedLogStore: On RESET_UPLOAD_STATES") {
+                CoroutineScope(Dispatchers.IO).launch {
                     resetUploadStates()
                 }
             }
