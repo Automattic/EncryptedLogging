@@ -1,8 +1,8 @@
 package com.automattic.encryptedlogging.store;
 
 import com.automattic.encryptedlogging.Dispatcher;
-import com.automattic.encryptedlogging.FluxCError;
-import com.automattic.encryptedlogging.annotations.action.Action;
+
+import org.wordpress.android.fluxc.annotations.action.Action;
 
 public abstract class Store {
     protected final Dispatcher mDispatcher;
@@ -12,7 +12,7 @@ public abstract class Store {
         mDispatcher.register(this);
     }
 
-    public interface OnChangedError extends FluxCError {}
+    public interface OnChangedError {}
 
     public static class OnChanged<T extends OnChangedError> {
         public T error = null;

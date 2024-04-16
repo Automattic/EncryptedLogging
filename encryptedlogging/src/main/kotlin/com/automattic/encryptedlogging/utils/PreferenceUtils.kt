@@ -2,7 +2,6 @@ package com.automattic.encryptedlogging.utils
 
 import android.content.Context
 import android.content.SharedPreferences
-import javax.inject.Inject
 
 object PreferenceUtils {
     @JvmStatic
@@ -10,8 +9,7 @@ object PreferenceUtils {
         return context.getSharedPreferences("${context.packageName}_fluxc-preferences", Context.MODE_PRIVATE)
     }
 
-    class PreferenceUtilsWrapper
-    @Inject constructor(private val context: Context) {
+    class PreferenceUtilsWrapper(private val context: Context) {
         fun getFluxCPreferences(): SharedPreferences {
             return PreferenceUtils.getFluxCPreferences(context)
         }
