@@ -44,7 +44,7 @@ import org.wordpress.android.util.AppLog.T.API
  * The most important example of this is `TOO_MANY_REQUESTS` error which results in server refusing any uploads for
  * an hour.
  */
-private const val ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE = "ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE_PREF_KEY"
+const val ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE = "ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE_PREF_KEY"
 private const val UPLOAD_NEXT_DELAY = 3000L // 3 seconds
 private const val TOO_MANY_REQUESTS_ERROR_DELAY = 60 * 60 * 1000L // 1 hour
 private const val REGULAR_UPLOAD_FAILURE_DELAY = 60 * 1000L // 1 minute
