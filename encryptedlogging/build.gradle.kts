@@ -1,15 +1,27 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.jetbrainsKotlinKapt)
 }
 
+val secretProperties = loadPropertiesFromFile(file("../secret.properties"))
+
 android {
     namespace = "com.automattic.encryptedlogging"
     compileSdk = 34
 
+    android.buildFeatures.buildConfig = true
+
     defaultConfig {
         minSdk = 24
+        buildConfigField(
+            "String",
+            "ENCRYPTION_KEY",
+            "\"${secretProperties.getProperty("encryptionKey")}\""
+        )
+        buildConfigField("String", "APP_SECRET", "\"${secretProperties.getProperty("appSecret")}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -30,6 +42,19 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    sourceSets["main"].java.srcDirs("src/main/kotlin")
+}
+
+group = "com.automattic"
+
+fun loadPropertiesFromFile(file: File): Properties {
+    val properties = Properties()
+    if (file.exists()) {
+        file.inputStream().use { stream ->
+            properties.load(stream)
+        }
+    }
+    return properties
 }
 
 dependencies {
@@ -37,9 +62,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.eventbus)
     implementation(libs.fluxc.annotations)
-    implementation(libs.jna)
     implementation(libs.kotlin.coroutines)
-    implementation(libs.lazysodium.android)
     implementation(libs.volley)
     implementation(libs.wordpress.utils)
     implementation(libs.wordpress.wellsql)
@@ -50,4 +73,8 @@ dependencies {
     testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.test.runner)
+
+    implementation("com.goterl:lazysodium-android:5.1.0@aar")
+    implementation("net.java.dev.jna:jna:5.13.0@aar")
 }

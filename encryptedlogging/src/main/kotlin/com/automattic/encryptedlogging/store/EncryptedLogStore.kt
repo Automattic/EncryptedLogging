@@ -12,6 +12,7 @@ import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.Encrypted
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploadFailed
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploaded
 import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
+import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
 import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.CLIENT_FAILURE
 import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.CONNECTION_FAILURE
 import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE
@@ -25,6 +26,7 @@ import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLo
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.UnsatisfiedLinkException
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.automattic.encryptedlogging.utils.PreferenceUtils.PreferenceUtilsWrapper
+import com.yarolegovich.wellsql.WellSql
 import java.io.File
 import java.util.Date
 import kotlinx.coroutines.CoroutineScope
@@ -43,7 +45,7 @@ import org.wordpress.android.util.AppLog.T.API
  * The most important example of this is `TOO_MANY_REQUESTS` error which results in server refusing any uploads for
  * an hour.
  */
-private const val ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE = "ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE_PREF_KEY"
+const val ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE = "ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE_PREF_KEY"
 private const val UPLOAD_NEXT_DELAY = 3000L // 3 seconds
 private const val TOO_MANY_REQUESTS_ERROR_DELAY = 60 * 60 * 1000L // 1 hour
 private const val REGULAR_UPLOAD_FAILURE_DELAY = 60 * 1000L // 1 minute
@@ -57,8 +59,14 @@ class EncryptedLogStore constructor(
     private val encryptedLogSqlUtils: EncryptedLogSqlUtils,
     private val logEncrypter: LogEncrypter,
     private val preferenceUtils: PreferenceUtilsWrapper,
-    dispatcher: Dispatcher
+    dispatcher: Dispatcher,
+    encryptedWellConfig: EncryptedWellConfig,
 ) : Store(dispatcher) {
+
+    init {
+        WellSql.init(encryptedWellConfig)
+    }
+
     override fun onRegister() {
         AppLog.d(API, this.javaClass.name + ": onRegister")
     }

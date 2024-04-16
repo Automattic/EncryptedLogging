@@ -19,10 +19,11 @@ private const val TOO_MANY_REQUESTS = "too_many_requests"
 
 class EncryptedLogRestClient(
     private val requestQueue: RequestQueue,
+    private val clientSecret: String,
 ) {
     suspend fun uploadLog(logUuid: String, contents: String): UploadEncryptedLogResult {
         return suspendCancellableCoroutine { cont ->
-            val request = EncryptedLogUploadRequest(logUuid, contents, "", {
+            val request = EncryptedLogUploadRequest(logUuid, contents, clientSecret, {
                 cont.resume(LogUploaded)
             }, { error ->
                 cont.resume(LogUploadFailed(mapError(error)))

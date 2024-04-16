@@ -13,14 +13,13 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "junitVersion" }
 assertj = { group = "org.assertj", name = "assertj-core", version = "3.25.3" }
 eventbus = { group = "org.greenrobot", name = "eventbus", version = "3.3.1" }
 fluxc-annotations = { group = "org.wordpress.fluxc", name = "fluxc-annotations", version = "2.76.0" }
 fluxc-processor = { group = "org.wordpress.fluxc", name = "fluxc-processor", version = "2.76.0" }
-jna = { group = "net.java.dev.jna", name = "jna", version = "5.13.0" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version = "1.8.0" }
-lazysodium-android = { group = "com.goterl", name = "lazysodium-android", version = "5.1.0" }
 robolectric = { group = "org.robolectric", name = "robolectric", version = "4.11.1" }
 volley = { group = "com.android.volley", name = "volley", version = "1.2.1" }
 wordpress-utils = { group = "org.wordpress", name = "utils", version = "3.14.0" }
