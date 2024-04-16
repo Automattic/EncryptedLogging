@@ -91,7 +91,6 @@ class ReleaseStack_EncryptedLogTest {
     }
 
     @Test
-    @Ignore("While 'testQueueForUpload' passes, this test fails and thus temporarily ignored")
     fun testQueueForUploadForInvalidUuid() {
         nextEvent = ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
 
