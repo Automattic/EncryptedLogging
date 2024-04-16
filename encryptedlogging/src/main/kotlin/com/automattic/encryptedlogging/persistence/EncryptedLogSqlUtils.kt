@@ -8,11 +8,8 @@ import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.QUEUED
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class EncryptedLogSqlUtils @Inject constructor() {
+class EncryptedLogSqlUtils {
     fun insertOrUpdateEncryptedLog(encryptedLog: EncryptedLog) {
         insertOrUpdateEncryptedLogs(listOf(encryptedLog))
     }

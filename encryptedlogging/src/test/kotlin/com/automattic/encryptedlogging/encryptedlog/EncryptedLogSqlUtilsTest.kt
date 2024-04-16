@@ -7,7 +7,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
-import com.automattic.encryptedlogging.SingleStoreWellSqlConfigForTests
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState
@@ -31,7 +30,7 @@ class EncryptedLogSqlUtilsTest {
     @Before
     fun setUp() {
         val appContext = RuntimeEnvironment.application.applicationContext
-        val config = SingleStoreWellSqlConfigForTests(appContext, EncryptedLogModel::class.java)
+        val config = TestConfig(appContext)
         WellSql.init(config)
         config.reset()
 

@@ -8,7 +8,6 @@ import com.android.volley.Response.ErrorListener
 import com.android.volley.VolleyError
 import com.android.volley.toolbox.HttpHeaderParser
 import org.json.JSONObject
-import com.automattic.encryptedlogging.generated.endpoint.WPCOMREST
 
 private const val AUTHORIZATION_HEADER = "Authorization"
 private const val CONTENT_TYPE_HEADER = "Content-Type"
@@ -21,7 +20,7 @@ class EncryptedLogUploadRequest(
     private val clientSecret: String,
     private val successListener: Response.Listener<NetworkResponse>,
     errorListener: ErrorListener
-) : Request<NetworkResponse>(Method.POST, WPCOMREST.encrypted_logging.urlV1_1, errorListener) {
+) : Request<NetworkResponse>(Method.POST, "https://public-api.wordpress.com/rest/v1.1/encrypted-logging/", errorListener) {
     override fun getHeaders(): Map<String, String> {
         return mapOf(
                 CONTENT_TYPE_HEADER to CONTENT_TYPE_JSON,
