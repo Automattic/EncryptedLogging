@@ -1,15 +1,27 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.jetbrainsKotlinKapt)
 }
 
+val secretProperties = loadPropertiesFromFile(file("../secret.properties"))
+
 android {
     namespace = "com.automattic.encryptedlogging"
     compileSdk = 34
 
+    android.buildFeatures.buildConfig = true
+
     defaultConfig {
         minSdk = 24
+        buildConfigField(
+            "String",
+            "ENCRYPTION_KEY",
+            "\"${secretProperties.getProperty("encryptionKey")}\""
+        )
+        buildConfigField("String", "APP_SECRET", "\"${secretProperties.getProperty("appSecret")}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -31,6 +43,18 @@ android {
         jvmTarget = "1.8"
     }
     sourceSets["main"].java.srcDirs("src/main/kotlin")
+}
+
+group = "com.automattic"
+
+fun loadPropertiesFromFile(file: File): Properties {
+    val properties = Properties()
+    if (file.exists()) {
+        file.inputStream().use { stream ->
+            properties.load(stream)
+        }
+    }
+    return properties
 }
 
 dependencies {
