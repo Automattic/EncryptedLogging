@@ -30,6 +30,7 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    sourceSets["main"].java.srcDirs("src/main/kotlin")
 }
 
 dependencies {
@@ -48,6 +49,7 @@ dependencies {
     testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.test.runner)
 
     implementation("com.goterl:lazysodium-android:5.1.0@aar")
     implementation("net.java.dev.jna:jna:5.13.0@aar")

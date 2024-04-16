@@ -1,16 +1,8 @@
 package com.automattic.encryptedlogging.release
 
-import org.greenrobot.eventbus.Subscribe
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.CoreMatchers.hasItem
-import org.junit.Assert.assertThat
-import org.junit.Assert.assertTrue
-import org.junit.Ignore
-import org.junit.Test
-import com.automattic.encryptedlogging.TestUtils
-import com.automattic.encryptedlogging.generated.EncryptedLogActionBuilder
 import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.TestEvents.ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY
 import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.TestEvents.ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
+import com.automattic.encryptedlogging.store.Dispatcher
 import com.automattic.encryptedlogging.store.EncryptedLogStore
 import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded
 import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded.EncryptedLogFailedToUpload
@@ -21,16 +13,28 @@ import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLo
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
+import org.greenrobot.eventbus.Subscribe
+import org.hamcrest.CoreMatchers.hasItem
+import org.hamcrest.CoreMatchers.`is`
+import org.junit.Assert.assertThat
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Test
+import org.wordpress.android.fluxc.generated.EncryptedLogActionBuilder
 
 private const val NUMBER_OF_LOGS_TO_UPLOAD = 2
 private const val TEST_UUID_PREFIX = "TEST-UUID-"
 private const val INVALID_UUID = "INVALID_UUID" // Underscore is not allowed
 
-class ReleaseStack_EncryptedLogTest : ReleaseStack_Base() {
-    @Inject lateinit var encryptedLogStore: EncryptedLogStore
+class ReleaseStack_EncryptedLogTest {
+    lateinit var encryptedLogStore: EncryptedLogStore
 
     private var nextEvent: TestEvents? = null
+    lateinit var mCountDownLatch: CountDownLatch
+
+    private val mDispatcher: Dispatcher = Dispatcher()
 
     private enum class TestEvents {
         NONE,
@@ -38,11 +42,9 @@ class ReleaseStack_EncryptedLogTest : ReleaseStack_Base() {
         ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
     }
 
-    @Throws(Exception::class)
-    override fun setUp() {
-        super.setUp()
-        mReleaseStackAppComponent.inject(this)
-        init()
+    @Before
+    fun setUp() {
+        mDispatcher.register(this)
         nextEvent = TestEvents.NONE
     }
 
@@ -62,7 +64,7 @@ class ReleaseStack_EncryptedLogTest : ReleaseStack_Base() {
             )
             mDispatcher.dispatch(EncryptedLogActionBuilder.newUploadLogAction(payload))
         }
-        assertTrue(mCountDownLatch.await(TestUtils.DEFAULT_TIMEOUT_MS.toLong(), TimeUnit.MILLISECONDS))
+        assertTrue(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS))
     }
 
     @Test
@@ -77,7 +79,7 @@ class ReleaseStack_EncryptedLogTest : ReleaseStack_Base() {
                 shouldStartUploadImmediately = true
         )
         mDispatcher.dispatch(EncryptedLogActionBuilder.newUploadLogAction(payload))
-        assertTrue(mCountDownLatch.await(TestUtils.DEFAULT_TIMEOUT_MS.toLong(), TimeUnit.MILLISECONDS))
+        assertTrue(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS))
     }
 
     @Suppress("unused")
