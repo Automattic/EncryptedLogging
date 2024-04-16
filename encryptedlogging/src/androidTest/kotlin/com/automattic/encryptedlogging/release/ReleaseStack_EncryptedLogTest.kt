@@ -8,6 +8,7 @@ import com.android.volley.toolbox.BasicNetwork
 import com.android.volley.toolbox.DiskBasedCache
 import com.android.volley.toolbox.HurlStack
 import com.automattic.encryptedlogging.BuildConfig
+import com.automattic.encryptedlogging.Dispatcher
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLoggingKey
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
@@ -16,7 +17,6 @@ import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
 import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
 import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.TestEvents.ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY
 import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.TestEvents.ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
-import com.automattic.encryptedlogging.store.Dispatcher
 import com.automattic.encryptedlogging.store.ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE
 import com.automattic.encryptedlogging.store.EncryptedLogStore
 import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded
