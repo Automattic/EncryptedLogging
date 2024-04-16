@@ -11,6 +11,7 @@ import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.Encrypted
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploadFailed
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploaded
 import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
+import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
 import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.CLIENT_FAILURE
 import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.CONNECTION_FAILURE
 import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE
@@ -24,6 +25,7 @@ import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLo
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.UnsatisfiedLinkException
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.automattic.encryptedlogging.utils.PreferenceUtils.PreferenceUtilsWrapper
+import com.yarolegovich.wellsql.WellSql
 import java.io.File
 import java.util.Date
 import kotlinx.coroutines.CoroutineScope
@@ -56,8 +58,14 @@ class EncryptedLogStore constructor(
     private val encryptedLogSqlUtils: EncryptedLogSqlUtils,
     private val logEncrypter: LogEncrypter,
     private val preferenceUtils: PreferenceUtilsWrapper,
-    dispatcher: Dispatcher
+    dispatcher: Dispatcher,
+    encryptedWellConfig: EncryptedWellConfig,
 ) : Store(dispatcher) {
+
+    init {
+        WellSql.init(encryptedWellConfig)
+    }
+
     override fun onRegister() {
         AppLog.d(API, this.javaClass.name + ": onRegister")
     }
