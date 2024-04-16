@@ -1,5 +1,6 @@
 package com.automattic.encryptedlogging.store
 
+import com.automattic.encryptedlogging.Dispatcher
 import com.automattic.encryptedlogging.action.EncryptedLogAction
 import com.automattic.encryptedlogging.action.EncryptedLogAction.RESET_UPLOAD_STATES
 import com.automattic.encryptedlogging.action.EncryptedLogAction.UPLOAD_LOG

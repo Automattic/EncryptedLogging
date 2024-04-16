@@ -1,7 +1,8 @@
-package com.automattic.encryptedlogging.store;
+package com.automattic.encryptedlogging;
 
 import org.greenrobot.eventbus.EventBus;
-import org.wordpress.android.fluxc.annotations.action.Action;
+import com.automattic.encryptedlogging.annotations.action.Action;
+import com.automattic.encryptedlogging.store.Store;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.AppLog.T;
 

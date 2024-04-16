@@ -1,5 +1,7 @@
 package com.automattic.encryptedlogging.store;
 
+import com.automattic.encryptedlogging.Dispatcher;
+
 import org.wordpress.android.fluxc.annotations.action.Action;
 
 public abstract class Store {
