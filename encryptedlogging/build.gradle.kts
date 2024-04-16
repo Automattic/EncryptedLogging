@@ -37,9 +37,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.eventbus)
     implementation(libs.fluxc.annotations)
-    implementation(libs.jna)
     implementation(libs.kotlin.coroutines)
-    implementation(libs.lazysodium.android)
     implementation(libs.volley)
     implementation(libs.wordpress.utils)
     implementation(libs.wordpress.wellsql)
@@ -50,4 +48,7 @@ dependencies {
     testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    implementation("com.goterl:lazysodium-android:5.1.0@aar")
+    implementation("net.java.dev.jna:jna:5.13.0@aar")
 }
