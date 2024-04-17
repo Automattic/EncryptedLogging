@@ -86,4 +86,13 @@ class EncryptedLogging(
         )
         dispatcher.dispatch(EncryptedLogActionBuilder.newUploadLogAction(payload))
     }
+
+    /**
+     * A method for the client to use to start uploading any encrypted logs that might have been queued.
+     *
+     * This method should be called within a coroutine, possibly in GlobalScope so it's not attached to any one context.
+     */
+    suspend fun uploadEncryptedLogs() {
+        encryptedLogStore.uploadQueuedEncryptedLogs()
+    }
 }
