@@ -18,6 +18,7 @@ import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import org.wordpress.android.fluxc.generated.EncryptedLogActionBuilder
@@ -30,9 +31,7 @@ class EncryptedLogging(
 
     private val dispatcher = Dispatcher()
     private val encryptedLogStore: EncryptedLogStore
-
-    val uploadState =
-        MutableStateFlow<Store.OnChanged<EncryptedLogStore.UploadEncryptedLogError>?>(null)
+    private val uploadState = MutableStateFlow<OnEncryptedLogUploaded?>(null)
 
     init {
         dispatcher.register(this)
@@ -92,5 +91,12 @@ class EncryptedLogging(
      */
     fun resetUploadStates() {
         dispatcher.dispatch(EncryptedLogActionBuilder.newResetUploadStatesAction())
+    }
+
+    /**
+     * A method for the client to use to observe the upload result of the encrypted logs.
+     */
+    fun observeEncryptedLogsUploadResult(): StateFlow<OnEncryptedLogUploaded?> {
+        return uploadState
     }
 }
