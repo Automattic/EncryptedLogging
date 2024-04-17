@@ -35,7 +35,7 @@ class EncryptedLogging(
 
     init {
         dispatcher.register(this)
-        val cache = DiskBasedCache(File.createTempFile("tempcache", null), 1024 * 1024) // 1MB cap
+        val cache = DiskBasedCache(File.createTempFile("tempcache", null), 1024 * 1024 * 10)
         val network = BasicNetwork(HurlStack())
         val requestQueue = RequestQueue(cache, network).apply {
             start()
