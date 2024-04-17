@@ -46,6 +46,10 @@ android {
     sourceSets["main"].java.srcDirs("src/main/kotlin")
 }
 
+kotlin {
+    explicitApi()
+}
+
 fun loadPropertiesFromFile(file: File): Properties {
     val properties = Properties()
     if (file.exists()) {

@@ -14,7 +14,7 @@ private const val CONTENT_TYPE_HEADER = "Content-Type"
 private const val CONTENT_TYPE_JSON = "application/json"
 private const val UUID_HEADER = "log-uuid"
 
-class EncryptedLogUploadRequest(
+internal class EncryptedLogUploadRequest(
     private val logUuid: String,
     private val contents: String,
     private val clientSecret: String,

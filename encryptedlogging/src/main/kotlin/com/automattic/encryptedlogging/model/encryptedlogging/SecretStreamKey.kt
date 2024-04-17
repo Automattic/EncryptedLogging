@@ -12,7 +12,7 @@ import com.goterl.lazysodium.utils.Key
  *
  * @see EncryptedSecretStreamKey
  */
-class SecretStreamKey(val bytes: ByteArray) {
+internal class SecretStreamKey(val bytes: ByteArray) {
     companion object {
         /**
          * Generate a new (and securely random) secret stream key

@@ -9,7 +9,7 @@ import org.json.JSONObject
 import com.automattic.encryptedlogging.network.EncryptedLogUploadRequest
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploadFailed
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploaded
-import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError
+import com.automattic.encryptedlogging.store.UploadEncryptedLogError
 import org.wordpress.android.util.AppLog
 import org.wordpress.android.util.AppLog.T.API
 import kotlin.coroutines.resume
@@ -17,7 +17,7 @@ import kotlin.coroutines.resume
 private const val INVALID_REQUEST = "invalid-request"
 private const val TOO_MANY_REQUESTS = "too_many_requests"
 
-class EncryptedLogRestClient(
+internal class EncryptedLogRestClient(
     private val requestQueue: RequestQueue,
     private val clientSecret: String,
 ) {
@@ -71,7 +71,7 @@ class EncryptedLogRestClient(
     }
 }
 
-sealed class UploadEncryptedLogResult {
+internal sealed class UploadEncryptedLogResult {
     object LogUploaded : UploadEncryptedLogResult()
     class LogUploadFailed(val error: UploadEncryptedLogError) : UploadEncryptedLogResult()
 }

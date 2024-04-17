@@ -12,7 +12,7 @@ import com.goterl.lazysodium.utils.KeyPair
  *
  * @see SecretStreamKey
  */
-class EncryptedSecretStreamKey(val bytes: ByteArray) {
+internal class EncryptedSecretStreamKey(val bytes: ByteArray) {
     companion object {
         /**
          * The expected size (in bytes) of an Encrypted Secret Stream Key.

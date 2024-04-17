@@ -9,7 +9,7 @@ import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUpload
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.QUEUED
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
 
-class EncryptedLogSqlUtils {
+internal class EncryptedLogSqlUtils {
     fun insertOrUpdateEncryptedLog(encryptedLog: EncryptedLog) {
         insertOrUpdateEncryptedLogs(listOf(encryptedLog))
     }
