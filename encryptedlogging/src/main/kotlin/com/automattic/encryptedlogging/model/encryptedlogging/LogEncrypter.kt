@@ -8,7 +8,7 @@ import com.goterl.lazysodium.utils.Key
 private const val ENCODED_ENCRYPTED_KEY_LENGTH = 108
 private const val ENCODED_HEADER_LENGTH = 32
 
-data class EncryptedLoggingKey(val publicKey: Key)
+internal data class EncryptedLoggingKey(val publicKey: Key)
 
 /**
  * [LogEncrypter] encrypts the logs for the given text.
@@ -16,7 +16,7 @@ data class EncryptedLoggingKey(val publicKey: Key)
  * @param encryptedLoggingKey The public key used to encrypt the log
  *
  */
-class LogEncrypter(private val encryptedLoggingKey: EncryptedLoggingKey) {
+internal class LogEncrypter(private val encryptedLoggingKey: EncryptedLoggingKey) {
     /**
      * Encrypts the given [text]. It also adds the given [uuid] to its headers.
      *

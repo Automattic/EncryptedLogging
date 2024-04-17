@@ -19,17 +19,16 @@ import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.Tes
 import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.TestEvents.ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
 import com.automattic.encryptedlogging.store.ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE
 import com.automattic.encryptedlogging.store.EncryptedLogStore
-import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded
-import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded.EncryptedLogFailedToUpload
-import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully
-import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.InvalidRequest
-import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.TooManyRequests
+import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
+import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded.EncryptedLogFailedToUpload
+import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully
+import com.automattic.encryptedlogging.store.UploadEncryptedLogError.InvalidRequest
+import com.automattic.encryptedlogging.store.UploadEncryptedLogError.TooManyRequests
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogPayload
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
 import com.yarolegovich.wellsql.WellSql
 import java.io.File
-import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
@@ -39,7 +38,6 @@ import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.wordpress.android.fluxc.generated.EncryptedLogActionBuilder
 
@@ -47,7 +45,7 @@ private const val NUMBER_OF_LOGS_TO_UPLOAD = 2
 private const val TEST_UUID_PREFIX = "TEST-UUID-"
 private const val INVALID_UUID = "INVALID_UUID" // Underscore is not allowed
 
-class ReleaseStack_EncryptedLogTest {
+internal class ReleaseStack_EncryptedLogTest {
     lateinit var encryptedLogStore: EncryptedLogStore
 
     private var nextEvent: TestEvents? = null

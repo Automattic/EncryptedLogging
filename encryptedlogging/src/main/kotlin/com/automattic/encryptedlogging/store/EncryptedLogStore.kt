@@ -16,15 +16,14 @@ import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
 import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.CLIENT_FAILURE
 import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.CONNECTION_FAILURE
 import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE
-import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded.EncryptedLogFailedToUpload
-import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully
-import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.InvalidRequest
-import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.MissingFile
-import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.NoConnection
-import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.TooManyRequests
-import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.Unknown
-import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogError.UnsatisfiedLinkException
-import com.automattic.encryptedlogging.utils.PreferenceUtils
+import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded.EncryptedLogFailedToUpload
+import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully
+import com.automattic.encryptedlogging.store.UploadEncryptedLogError.InvalidRequest
+import com.automattic.encryptedlogging.store.UploadEncryptedLogError.MissingFile
+import com.automattic.encryptedlogging.store.UploadEncryptedLogError.NoConnection
+import com.automattic.encryptedlogging.store.UploadEncryptedLogError.TooManyRequests
+import com.automattic.encryptedlogging.store.UploadEncryptedLogError.Unknown
+import com.automattic.encryptedlogging.store.UploadEncryptedLogError.UnsatisfiedLinkException
 import com.automattic.encryptedlogging.utils.PreferenceUtils.PreferenceUtilsWrapper
 import com.yarolegovich.wellsql.WellSql
 import java.io.File
@@ -45,7 +44,7 @@ import org.wordpress.android.util.AppLog.T.API
  * The most important example of this is `TOO_MANY_REQUESTS` error which results in server refusing any uploads for
  * an hour.
  */
-const val ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE = "ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE_PREF_KEY"
+internal const val ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE = "ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE_PREF_KEY"
 private const val UPLOAD_NEXT_DELAY = 3000L // 3 seconds
 private const val TOO_MANY_REQUESTS_ERROR_DELAY = 60 * 60 * 1000L // 1 hour
 private const val REGULAR_UPLOAD_FAILURE_DELAY = 60 * 1000L // 1 minute
@@ -54,7 +53,7 @@ private const val MAX_RETRY_COUNT = 3
 private const val HTTP_STATUS_CODE_500 = 500
 private const val HTTP_STATUS_CODE_599 = 599
 
-class EncryptedLogStore constructor(
+internal class EncryptedLogStore constructor(
     private val encryptedLogRestClient: EncryptedLogRestClient,
     private val encryptedLogSqlUtils: EncryptedLogSqlUtils,
     private val logEncrypter: LogEncrypter,
@@ -296,29 +295,6 @@ class EncryptedLogStore constructor(
         val file: File,
         val shouldStartUploadImmediately: Boolean = false
     )
-
-    sealed class OnEncryptedLogUploaded(val uuid: String, val file: File) : Store.OnChanged<UploadEncryptedLogError>() {
-        class EncryptedLogUploadedSuccessfully(uuid: String, file: File) : OnEncryptedLogUploaded(uuid, file)
-        class EncryptedLogFailedToUpload(
-            uuid: String,
-            file: File,
-            error: UploadEncryptedLogError,
-            val willRetry: Boolean
-        ) : OnEncryptedLogUploaded(uuid, file) {
-            init {
-                this.error = error
-            }
-        }
-    }
-
-    sealed class UploadEncryptedLogError : OnChangedError {
-        class Unknown(val statusCode: Int? = null, val message: String? = null) : UploadEncryptedLogError()
-        object InvalidRequest : UploadEncryptedLogError()
-        object TooManyRequests : UploadEncryptedLogError()
-        object NoConnection : UploadEncryptedLogError()
-        object MissingFile : UploadEncryptedLogError()
-        object UnsatisfiedLinkException : UploadEncryptedLogError()
-    }
 
     /**
      * These are internal failure types to make it easier to deal with encrypted log upload errors.

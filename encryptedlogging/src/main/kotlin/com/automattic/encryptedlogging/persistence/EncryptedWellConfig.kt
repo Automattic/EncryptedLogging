@@ -6,7 +6,7 @@ import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
 import com.yarolegovich.wellsql.DefaultWellConfig
 import com.yarolegovich.wellsql.WellTableManager
 
-class EncryptedWellConfig(context: Context) : DefaultWellConfig(context) {
+internal class EncryptedWellConfig(context: Context) : DefaultWellConfig(context) {
 
     override fun getDbVersion(): Int {
         return 1

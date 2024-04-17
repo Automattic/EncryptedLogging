@@ -14,7 +14,7 @@ import java.util.Date
  * [EncryptedLog] and [EncryptedLogModel] are tied to each other, any change in one should be reflected in the other.
  * [EncryptedLog] should be used within the app, [EncryptedLogModel] should be used for DB interactions.
  */
-data class EncryptedLog(
+internal data class EncryptedLog(
     val uuid: String,
     val file: File,
     val dateCreated: Date = Date(),
@@ -36,7 +36,7 @@ data class EncryptedLog(
 
 @Table
 @RawConstraints("UNIQUE(UUID) ON CONFLICT REPLACE")
-class EncryptedLogModel(@PrimaryKey @Column private var id: Int = 0) : Identifiable {
+internal class EncryptedLogModel(@PrimaryKey @Column private var id: Int = 0) : Identifiable {
     @Column var uuid: String? = null
     @Column var filePath: String? = null
     @Column var dateCreated: String? = null // ISO 8601-formatted date in UTC, e.g. 1955-11-05T14:15:00Z
@@ -71,7 +71,7 @@ class EncryptedLogModel(@PrimaryKey @Column private var id: Int = 0) : Identifia
     }
 }
 
-enum class EncryptedLogUploadState(val value: Int) {
+internal enum class EncryptedLogUploadState(val value: Int) {
     QUEUED(1),
     UPLOADING(2),
     FAILED(3)

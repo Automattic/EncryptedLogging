@@ -6,7 +6,7 @@ import com.goterl.lazysodium.SodiumAndroid
 /**
  * Convenience helpers for Encrypted Logging
  */
-object EncryptionUtils {
+internal object EncryptionUtils {
     /**
      * Use a single shared instance of the Sodium library.
      *

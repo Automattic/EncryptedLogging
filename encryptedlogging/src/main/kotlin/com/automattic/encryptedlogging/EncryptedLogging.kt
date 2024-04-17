@@ -12,8 +12,7 @@ import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.Encrypted
 import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
 import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
 import com.automattic.encryptedlogging.store.EncryptedLogStore
-import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded
-import com.automattic.encryptedlogging.store.Store
+import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
 import java.io.File
@@ -23,7 +22,7 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import org.wordpress.android.fluxc.generated.EncryptedLogActionBuilder
 
-class EncryptedLogging(
+public class EncryptedLogging(
     context: Context,
     encryptedLoggingKey: String,
     clientSecret: String,
@@ -60,11 +59,11 @@ class EncryptedLogging(
 
     @Suppress("unused")
     @Subscribe(threadMode = ThreadMode.ASYNC)
-    fun onEncryptedLogUploaded(event: OnEncryptedLogUploaded) {
+    internal fun onEncryptedLogUploaded(event: OnEncryptedLogUploaded) {
         uploadState.value = event
     }
 
-    fun enqueueSendingEncryptedLogs(
+    public fun enqueueSendingEncryptedLogs(
         uuid: String,
         file: File,
         shouldUploadImmediately: Boolean,
@@ -82,21 +81,21 @@ class EncryptedLogging(
      *
      * This method should be called within a coroutine, possibly in GlobalScope so it's not attached to any one context.
      */
-    suspend fun uploadEncryptedLogs() {
+    public suspend fun uploadEncryptedLogs() {
         encryptedLogStore.uploadQueuedEncryptedLogs()
     }
 
     /**
      * A method for the client to use to reset the upload states. Usually called on app initialization, before [uploadEncryptedLogs]
      */
-    fun resetUploadStates() {
+    public fun resetUploadStates() {
         dispatcher.dispatch(EncryptedLogActionBuilder.newResetUploadStatesAction())
     }
 
     /**
      * A method for the client to use to observe the upload result of the encrypted logs.
      */
-    fun observeEncryptedLogsUploadResult(): StateFlow<OnEncryptedLogUploaded?> {
+    public fun observeEncryptedLogsUploadResult(): StateFlow<OnEncryptedLogUploaded?> {
         return uploadState
     }
 }
