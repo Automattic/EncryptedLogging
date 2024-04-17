@@ -3,6 +3,9 @@
 
 # Variables used in this pipeline are defined in `shared-pipeline-vars`, which is `source`'d before calling `buidkite-agent pipeline upload`
 
+agents:
+  queue: "android"
+
 steps:
   - label: "Gradle Wrapper Validation"
     command: |
