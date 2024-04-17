@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.jetbrainsKotlinKapt)
+    alias(libs.plugins.automatticPublish)
 }
 
 val secretProperties = loadPropertiesFromFile(file("../secret.properties"))
@@ -45,8 +46,6 @@ android {
     sourceSets["main"].java.srcDirs("src/main/kotlin")
 }
 
-group = "com.automattic"
-
 fun loadPropertiesFromFile(file: File): Properties {
     val properties = Properties()
     if (file.exists()) {
@@ -77,4 +76,18 @@ dependencies {
 
     implementation("com.goterl:lazysodium-android:5.1.0@aar")
     implementation("net.java.dev.jna:jna:5.13.0@aar")
+}
+
+project.afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("maven") {
+                from(components["release"])
+
+                groupId = "com.automattic"
+                artifactId = "encryptedlogging"
+                // version is set by `publish-to-s3` plugin
+            }
+        }
+    }
 }
