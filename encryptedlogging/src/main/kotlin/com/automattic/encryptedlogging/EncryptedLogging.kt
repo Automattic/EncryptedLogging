@@ -86,4 +86,11 @@ class EncryptedLogging(
     suspend fun uploadEncryptedLogs() {
         encryptedLogStore.uploadQueuedEncryptedLogs()
     }
+
+    /**
+     * A method for the client to use to reset the upload states. Usually called on app initialization, before [uploadEncryptedLogs]
+     */
+    fun resetUploadStates() {
+        dispatcher.dispatch(EncryptedLogActionBuilder.newResetUploadStatesAction())
+    }
 }
