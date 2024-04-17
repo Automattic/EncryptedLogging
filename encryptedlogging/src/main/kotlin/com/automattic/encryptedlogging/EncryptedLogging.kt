@@ -7,15 +7,12 @@ import com.android.volley.toolbox.BasicNetwork
 import com.android.volley.toolbox.DiskBasedCache
 import com.android.volley.toolbox.HurlStack
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLoggingKey
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptionUtils
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
 import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
 import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
 import com.automattic.encryptedlogging.store.EncryptedLogStore
 import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded
-import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded.EncryptedLogFailedToUpload
-import com.automattic.encryptedlogging.store.EncryptedLogStore.OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully
 import com.automattic.encryptedlogging.store.Store
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
@@ -46,15 +43,9 @@ class EncryptedLogging(
         }
         val encryptedLogRestClient = EncryptedLogRestClient(requestQueue, clientSecret)
         val encryptedLogSqlUtils = EncryptedLogSqlUtils()
-        val encryptedLoggingKey = EncryptedLoggingKey(
-            Key.fromBytes(
-                Base64.decode(
-                    encryptedLoggingKey,
-                    Base64.DEFAULT
-                )
-            )
+        val logEncrypter = LogEncrypter(
+            EncryptedLoggingKey(Key.fromBytes(Base64.decode(encryptedLoggingKey, Base64.DEFAULT)))
         )
-        val logEncrypter = LogEncrypter(encryptedLoggingKey)
         val preferenceUtilsWrapper = PreferenceUtils.PreferenceUtilsWrapper(
             context
         )
