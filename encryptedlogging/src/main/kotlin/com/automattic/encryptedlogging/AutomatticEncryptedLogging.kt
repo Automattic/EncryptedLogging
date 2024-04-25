@@ -76,25 +76,14 @@ public class AutomatticEncryptedLogging(
         dispatcher.dispatch(EncryptedLogActionBuilder.newUploadLogAction(payload))
     }
 
-    /**
-     * A method for the client to use to start uploading any encrypted logs that might have been queued.
-     *
-     * This method should be called within a coroutine, possibly in GlobalScope so it's not attached to any one context.
-     */
     override suspend fun uploadEncryptedLogs() {
         encryptedLogStore.uploadQueuedEncryptedLogs()
     }
 
-    /**
-     * A method for the client to use to reset the upload states. Usually called on app initialization, before [uploadEncryptedLogs]
-     */
     override fun resetUploadStates() {
         dispatcher.dispatch(EncryptedLogActionBuilder.newResetUploadStatesAction())
     }
 
-    /**
-     * A method for the client to use to observe the upload result of the encrypted logs.
-     */
     override fun observeEncryptedLogsUploadResult(): StateFlow<OnEncryptedLogUploaded?> {
         return uploadState
     }
