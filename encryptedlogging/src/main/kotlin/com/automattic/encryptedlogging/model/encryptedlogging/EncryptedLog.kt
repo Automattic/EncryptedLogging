@@ -24,7 +24,9 @@ internal data class EncryptedLog(
     companion object {
         fun fromEncryptedLogModel(encryptedLogModel: EncryptedLogModel) =
                 EncryptedLog(
-                        dateCreated = DateTimeUtils.dateUTCFromIso8601(encryptedLogModel.dateCreated),
+                        dateCreated = encryptedLogModel.dateCreated?.let {
+                            DateTimeUtils.dateUTCFromIso8601(it)
+                        } ?: Date(),
                         // Crash if values are missing which shouldn't happen if there are no logic errors
                         uuid = encryptedLogModel.uuid!!,
                         file = File(encryptedLogModel.filePath),
