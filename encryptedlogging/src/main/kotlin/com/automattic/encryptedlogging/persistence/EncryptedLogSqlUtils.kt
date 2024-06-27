@@ -41,7 +41,7 @@ internal class EncryptedLogSqlUtils {
                 .execute()
     }
 
-    fun getEncryptedLogsForUpload(): List<EncryptedLog> {
+    fun getEncryptedLogForUpload(): EncryptedLog? {
         val uploadStates = listOf(QUEUED, FAILED).map { it.value }
         return WellSql.select(EncryptedLogModel::class.java)
                 .where()
@@ -51,10 +51,12 @@ internal class EncryptedLogSqlUtils {
                 .orderBy(EncryptedLogModelTable.UPLOAD_STATE_DB_VALUE, SelectQuery.ORDER_ASCENDING)
                 // First log that's queued should have priority
                 .orderBy(EncryptedLogModelTable.DATE_CREATED, SelectQuery.ORDER_ASCENDING)
+                .limit(1)
                 .asModel
                 .map {
                     EncryptedLog.fromEncryptedLogModel(it)
                 }
+                .firstOrNull()
     }
 
     private fun getEncryptedLogModel(uuid: String): EncryptedLogModel? {
