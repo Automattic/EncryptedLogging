@@ -1,5 +1,6 @@
 package com.automattic.encryptedlogging.persistence
 
+import android.util.Log
 import com.wellsql.generated.EncryptedLogModelTable
 import com.yarolegovich.wellsql.SelectQuery
 import com.yarolegovich.wellsql.WellSql
@@ -54,6 +55,7 @@ internal class EncryptedLogSqlUtils {
                 .limit(1)
                 .asModel
                 .map {
+                    Log.d("EncryptedLogSqlUtils", "getEncryptedLogsForUpload: $it")
                     EncryptedLog.fromEncryptedLogModel(it)
                 }
                 .firstOrNull()

@@ -161,10 +161,12 @@ internal class EncryptedLogStore constructor(
                 encryptedLogSqlUtils.insertOrUpdateEncryptedLog(it)
             }
 
-            when (val result = encryptedLogRestClient.uploadLog(encryptedLog.uuid, encryptedText)) {
-                is LogUploaded -> handleSuccessfulUpload(encryptedLog)
-                is LogUploadFailed -> handleFailedUpload(encryptedLog, result.error)
-            }
+            handleFailedUpload(encryptedLog, UploadEncryptedLogError.TooManyRequests)
+
+//            when (val result = encryptedLogRestClient.uploadLog(encryptedLog.uuid, encryptedText)) {
+//                is LogUploaded -> handleSuccessfulUpload(encryptedLog)
+//                is LogUploadFailed -> handleFailedUpload(encryptedLog, result.error)
+//            }
         } catch (e: UnsatisfiedLinkError) {
             handleFailedUpload(encryptedLog, UnsatisfiedLinkException)
         }

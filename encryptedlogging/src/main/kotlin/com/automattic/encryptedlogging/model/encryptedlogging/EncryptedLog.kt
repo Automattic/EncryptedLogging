@@ -49,6 +49,10 @@ internal class EncryptedLogModel(@PrimaryKey @Column private var id: Int = 0) : 
         this.id = id
     }
 
+    override fun toString(): String {
+        return "EncryptedLogModel(id=$id, uuid=$uuid, filePath=$filePath, dateCreated=$dateCreated, uploadStateDbValue=$uploadStateDbValue, failedCount=$failedCount, uploadState=$uploadState)"
+    }
+
     val uploadState: EncryptedLogUploadState
         get() =
             requireNotNull(
