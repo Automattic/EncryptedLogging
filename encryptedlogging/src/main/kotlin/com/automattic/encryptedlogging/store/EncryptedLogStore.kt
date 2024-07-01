@@ -140,7 +140,7 @@ internal class EncryptedLogStore constructor(
             return
         }
         // We want to upload a single file at a time
-        encryptedLogSqlUtils.getEncryptedLogsForUpload().firstOrNull()?.let {
+        encryptedLogSqlUtils.getEncryptedLogForUpload()?.let {
             uploadEncryptedLog(it)
         }
     }

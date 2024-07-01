@@ -8,7 +8,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.QUEUED
@@ -139,21 +138,21 @@ class EncryptedLogSqlUtilsTest {
     fun `test get encrypted logs for upload includes QUEUED logs`() {
         sqlUtils.insertOrUpdateEncryptedLog(createTestEncryptedLog(uploadState = QUEUED))
 
-        assertThat(sqlUtils.getEncryptedLogsForUpload()).isNotEmpty
+        assertThat(sqlUtils.getEncryptedLogForUpload()).isNotNull
     }
 
     @Test
     fun `test get encrypted logs for upload includes FAILED logs`() {
         sqlUtils.insertOrUpdateEncryptedLog(createTestEncryptedLog(uploadState = FAILED))
 
-        assertThat(sqlUtils.getEncryptedLogsForUpload()).isNotEmpty
+        assertThat(sqlUtils.getEncryptedLogForUpload()).isNotNull
     }
 
     @Test
     fun `test get encrypted logs for upload does not include UPLOADING logs`() {
         sqlUtils.insertOrUpdateEncryptedLog(createTestEncryptedLog(uploadState = UPLOADING))
 
-        assertThat(sqlUtils.getEncryptedLogsForUpload()).isEmpty()
+        assertThat(sqlUtils.getEncryptedLogForUpload()).isNull()
     }
 
     @Test
@@ -162,7 +161,7 @@ class EncryptedLogSqlUtilsTest {
         sqlUtils.insertOrUpdateEncryptedLog(createTestEncryptedLog(uploadState = QUEUED))
 
         // Queued logs should be uploaded before the failed ones
-        assertThat(sqlUtils.getEncryptedLogsForUpload().firstOrNull()?.uploadState).isEqualTo(QUEUED)
+        assertThat(sqlUtils.getEncryptedLogForUpload()?.uploadState).isEqualTo(QUEUED)
     }
 
     private fun getTestEncryptedLogFromDB(uuid: String = TEST_UUID) = sqlUtils.getEncryptedLog(uuid)
