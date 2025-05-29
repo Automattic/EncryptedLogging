@@ -6,7 +6,6 @@ junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 appcompat = "1.6.1"
-fluxc = "2.76.0"
 
 [libraries]
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
@@ -15,11 +14,9 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "junitVersion" }
 assertj = { group = "org.assertj", name = "assertj-core", version = "3.25.3" }
-eventbus = { group = "org.greenrobot", name = "eventbus", version = "3.3.1" }
-fluxc-annotations = { group = "org.wordpress.fluxc", name = "fluxc-annotations", version = "2.76.0" }
-fluxc-processor = { group = "org.wordpress.fluxc", name = "fluxc-processor", version = "2.76.0" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version = "1.8.0" }
+kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.8.0" }
 robolectric = { group = "org.robolectric", name = "robolectric", version = "4.11.1" }
 volley = { group = "com.android.volley", name = "volley", version = "1.2.1" }
 wordpress-utils = { group = "org.wordpress", name = "utils", version = "3.14.0" }

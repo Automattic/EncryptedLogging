@@ -1,9 +1,5 @@
 package com.automattic.encryptedlogging.store
 
-import com.automattic.encryptedlogging.Dispatcher
-import com.automattic.encryptedlogging.action.EncryptedLogAction
-import com.automattic.encryptedlogging.action.EncryptedLogAction.RESET_UPLOAD_STATES
-import com.automattic.encryptedlogging.action.EncryptedLogAction.UPLOAD_LOG
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
@@ -28,15 +24,8 @@ import com.automattic.encryptedlogging.utils.PreferenceUtils.PreferenceUtilsWrap
 import com.yarolegovich.wellsql.WellSql
 import java.io.File
 import java.util.Date
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
-import org.wordpress.android.fluxc.annotations.action.Action
-import org.wordpress.android.util.AppLog
-import org.wordpress.android.util.AppLog.T.API
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * Depending on the error type, we'll keep a record of the earliest date we can try another encrypted log upload.
@@ -53,39 +42,19 @@ private const val MAX_RETRY_COUNT = 3
 private const val HTTP_STATUS_CODE_500 = 500
 private const val HTTP_STATUS_CODE_599 = 599
 
-internal class EncryptedLogStore constructor(
+internal class EncryptedLogStore(
     private val encryptedLogRestClient: EncryptedLogRestClient,
     private val encryptedLogSqlUtils: EncryptedLogSqlUtils,
     private val logEncrypter: LogEncrypter,
     private val preferenceUtils: PreferenceUtilsWrapper,
-    dispatcher: Dispatcher,
     encryptedWellConfig: EncryptedWellConfig,
-) : Store(dispatcher) {
+) {
+
+    private val _uploadState = MutableStateFlow<OnEncryptedLogUploaded?>(null)
+    internal val uploadState = _uploadState
 
     init {
         WellSql.init(encryptedWellConfig)
-    }
-
-    override fun onRegister() {
-        AppLog.d(API, this.javaClass.name + ": onRegister")
-    }
-
-    @Subscribe(threadMode = ThreadMode.ASYNC)
-    override fun onAction(action: Action<*>) {
-        val actionType = action.type as? EncryptedLogAction ?: return
-        when (actionType) {
-            UPLOAD_LOG -> {
-                //todo
-                CoroutineScope(Dispatchers.IO).launch {
-                    queueLogForUpload(action.payload as UploadEncryptedLogPayload)
-                }
-            }
-            RESET_UPLOAD_STATES -> {
-                CoroutineScope(Dispatchers.IO).launch {
-                    resetUploadStates()
-                }
-            }
-        }
     }
 
     /**
@@ -98,16 +67,14 @@ internal class EncryptedLogStore constructor(
         uploadNext()
     }
 
-    private suspend fun queueLogForUpload(payload: UploadEncryptedLogPayload) {
+    internal suspend fun queueLogForUpload(payload: UploadEncryptedLogPayload) {
         // If the log file is not valid, there is nothing we can do
         if (!isValidFile(payload.file)) {
-            emitChange(
-                    EncryptedLogFailedToUpload(
-                            uuid = payload.uuid,
-                            file = payload.file,
-                            error = MissingFile,
-                            willRetry = false
-                    )
+            _uploadState.value = EncryptedLogFailedToUpload(
+                uuid = payload.uuid,
+                file = payload.file,
+                error = MissingFile,
+                willRetry = false
             )
             return
         }
@@ -122,7 +89,7 @@ internal class EncryptedLogStore constructor(
         }
     }
 
-    private fun resetUploadStates() {
+    internal fun resetUploadStates() {
         encryptedLogSqlUtils.insertOrUpdateEncryptedLogs(encryptedLogSqlUtils.getUploadingEncryptedLogs().map {
             it.copy(uploadState = FAILED)
         })
@@ -172,7 +139,10 @@ internal class EncryptedLogStore constructor(
 
     private suspend fun handleSuccessfulUpload(encryptedLog: EncryptedLog) {
         deleteEncryptedLog(encryptedLog)
-        emitChange(EncryptedLogUploadedSuccessfully(uuid = encryptedLog.uuid, file = encryptedLog.file))
+        _uploadState.value = EncryptedLogUploadedSuccessfully(
+            uuid = encryptedLog.uuid,
+            file = encryptedLog.file
+        )
         uploadNext()
     }
 
@@ -203,13 +173,11 @@ internal class EncryptedLogStore constructor(
             )
         }
 
-        emitChange(
-                EncryptedLogFailedToUpload(
-                        uuid = encryptedLog.uuid,
-                        file = encryptedLog.file,
-                        error = error,
-                        willRetry = !isFinalFailure
-                )
+        _uploadState.value = EncryptedLogFailedToUpload(
+            uuid = encryptedLog.uuid,
+            file = encryptedLog.file,
+            error = error,
+            willRetry = !isFinalFailure
         )
         // If a log failed to upload for the final time, we don't need to add any delay since the log is the problem.
         // Otherwise, the only special case that requires an extra long delay is `TOO_MANY_REQUESTS` upload error.

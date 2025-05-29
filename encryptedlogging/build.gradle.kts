@@ -56,13 +56,10 @@ fun loadPropertiesFromFile(file: File): Properties {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(libs.eventbus)
-    implementation(libs.fluxc.annotations)
     implementation(libs.kotlin.coroutines)
     implementation(libs.volley)
     implementation(libs.wordpress.utils)
     implementation(libs.wordpress.wellsql)
-    kapt(libs.fluxc.processor)
     kapt(libs.wordpress.wellsql.processor)
     testImplementation(libs.assertj)
     testImplementation(libs.junit)
@@ -70,6 +67,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.kotlin.coroutines.test)
 
     implementation("com.goterl:lazysodium-android:5.1.0@aar")
     implementation("net.java.dev.jna:jna:5.13.0@aar")

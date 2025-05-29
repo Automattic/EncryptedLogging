@@ -8,7 +8,7 @@ public interface EncryptedLogging {
     /**
      * A method for the client to use to enqueue encrypted logs for sending.
      */
-    public fun enqueueSendingEncryptedLogs(
+    public suspend fun enqueueSendingEncryptedLogs(
         uuid: String,
         file: File,
         shouldUploadImmediately: Boolean,
@@ -24,7 +24,7 @@ public interface EncryptedLogging {
     /**
      * A method for the client to use to reset the upload states. Usually called on app initialization, before [uploadEncryptedLogs]
      */
-    public fun resetUploadStates()
+    public suspend fun resetUploadStates()
 
     /**
      * A method for the client to use to observe the upload result of the encrypted logs.

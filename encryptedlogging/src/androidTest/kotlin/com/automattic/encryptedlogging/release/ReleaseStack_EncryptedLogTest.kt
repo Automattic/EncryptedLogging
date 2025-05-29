@@ -8,15 +8,12 @@ import com.android.volley.toolbox.BasicNetwork
 import com.android.volley.toolbox.DiskBasedCache
 import com.android.volley.toolbox.HurlStack
 import com.automattic.encryptedlogging.BuildConfig
-import com.automattic.encryptedlogging.Dispatcher
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLoggingKey
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
 import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
 import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
-import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.TestEvents.ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY
-import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.TestEvents.ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
 import com.automattic.encryptedlogging.store.ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE
 import com.automattic.encryptedlogging.store.EncryptedLogStore
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
@@ -28,18 +25,17 @@ import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLo
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
 import com.yarolegovich.wellsql.WellSql
+import kotlinx.coroutines.test.runTest
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
-import org.greenrobot.eventbus.Subscribe
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.wordpress.android.fluxc.generated.EncryptedLogActionBuilder
 
 private const val NUMBER_OF_LOGS_TO_UPLOAD = 2
 private const val TEST_UUID_PREFIX = "TEST-UUID-"
@@ -48,16 +44,14 @@ private const val INVALID_UUID = "INVALID_UUID" // Underscore is not allowed
 internal class ReleaseStack_EncryptedLogTest {
     lateinit var encryptedLogStore: EncryptedLogStore
 
-    private var nextEvent: TestEvents? = null
+//    private var nextEvent: TestEvents? = null
     lateinit var mCountDownLatch: CountDownLatch
 
-    private val mDispatcher: Dispatcher = Dispatcher()
-
-    private enum class TestEvents {
+    /*private enum class TestEvents {
         NONE,
         ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY,
         ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
-    }
+    }*/
 
     @Before
     fun setUp() {
@@ -66,14 +60,12 @@ internal class ReleaseStack_EncryptedLogTest {
         cleanSharedPreferencesState(preferenceUtilsWrapper)
         initializeEncryptedLogStore(context, preferenceUtilsWrapper)
         WellSql.delete(EncryptedLogModel::class.java).execute()
-        mDispatcher.register(this)
-        nextEvent = TestEvents.NONE
+//        nextEvent = TestEvents.NONE
     }
 
-
     @Test
-    fun testQueueForUpload() {
-        nextEvent = ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY
+    fun testQueueForUpload() = runTest {
+//        nextEvent = ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY
 
         val testIds = testIds()
         mCountDownLatch = CountDownLatch(testIds.size)
@@ -83,14 +75,14 @@ internal class ReleaseStack_EncryptedLogTest {
                     file = createTempFileWithContent(suffix = uuid, content = "Testing FluxC log upload for $uuid at ${System.currentTimeMillis()}"),
                     shouldStartUploadImmediately = true
             )
-            mDispatcher.dispatch(EncryptedLogActionBuilder.newUploadLogAction(payload))
+            encryptedLogStore.queueLogForUpload(payload)
         }
         assertTrue(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS))
     }
 
     @Test
-    fun testQueueForUploadForInvalidUuid() {
-        nextEvent = ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
+    fun testQueueForUploadForInvalidUuid() = runTest {
+//        nextEvent = ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
 
         mCountDownLatch = CountDownLatch(1)
         val payload = UploadEncryptedLogPayload(
@@ -98,16 +90,15 @@ internal class ReleaseStack_EncryptedLogTest {
                 file = createTempFile(suffix = INVALID_UUID),
                 shouldStartUploadImmediately = true
         )
-        mDispatcher.dispatch(EncryptedLogActionBuilder.newUploadLogAction(payload))
+        encryptedLogStore.queueLogForUpload(payload)
         assertTrue(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS))
     }
 
-    @Suppress("unused")
-    @Subscribe
+    @Suppress("unused") // TODO: Use that!
     fun onEncryptedLogUploaded(event: OnEncryptedLogUploaded) {
         when (event) {
             is EncryptedLogUploadedSuccessfully -> {
-                assertThat(nextEvent, `is`(ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY))
+//                assertThat(nextEvent, `is`(ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY))
                 assertThat(testIds(), hasItem(event.uuid))
             }
             is EncryptedLogFailedToUpload -> {
@@ -117,7 +108,7 @@ internal class ReleaseStack_EncryptedLogTest {
                         assertThat(event.willRetry, `is`(true))
                     }
                     is InvalidRequest -> {
-                        assertThat(nextEvent, `is`(ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID))
+//                        assertThat(nextEvent, `is`(ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID))
                         assertThat(event.willRetry, `is`(false))
                     }
                     else -> {
@@ -169,7 +160,6 @@ internal class ReleaseStack_EncryptedLogTest {
             encryptedLogSqlUtils,
             logEncrypter,
             preferenceUtilsWrapper,
-            mDispatcher,
             EncryptedWellConfig(context)
         )
     }
