@@ -3,8 +3,9 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
-    alias(libs.plugins.jetbrainsKotlinKapt)
     alias(libs.plugins.automatticPublish)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
 
 val secretProperties = loadPropertiesFromFile(file("../secret.properties"))
@@ -27,6 +28,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         consumerProguardFiles.add(File("consumer-rules.pro"))
+    }
+
+    room {
+        schemaDirectory("$projectDir/schemas")
     }
 
     compileOptions {
@@ -56,16 +61,20 @@ fun loadPropertiesFromFile(file: File): Properties {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    api(libs.androidx.room.ktx)
     implementation(libs.kotlin.coroutines)
     implementation(libs.volley)
     implementation(libs.wordpress.utils)
-    implementation(libs.wordpress.wellsql)
-    kapt(libs.wordpress.wellsql.processor)
+    testImplementation(libs.androidx.test.core.ktx)
     testImplementation(libs.assertj)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlin.coroutines.test)
     testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.kotlin.coroutines.test)
 

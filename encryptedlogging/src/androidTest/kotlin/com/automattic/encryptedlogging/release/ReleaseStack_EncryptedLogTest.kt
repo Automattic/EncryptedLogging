@@ -8,12 +8,10 @@ import com.android.volley.toolbox.BasicNetwork
 import com.android.volley.toolbox.DiskBasedCache
 import com.android.volley.toolbox.HurlStack
 import com.automattic.encryptedlogging.BuildConfig
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLoggingKey
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
-import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
-import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
+import com.automattic.encryptedlogging.persistence.EncryptedLogDatabase
 import com.automattic.encryptedlogging.store.ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE
 import com.automattic.encryptedlogging.store.EncryptedLogStore
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
@@ -24,7 +22,6 @@ import com.automattic.encryptedlogging.store.UploadEncryptedLogError.TooManyRequ
 import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogPayload
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
-import com.yarolegovich.wellsql.WellSql
 import kotlinx.coroutines.test.runTest
 import java.io.File
 import java.util.concurrent.CountDownLatch
@@ -59,7 +56,7 @@ internal class ReleaseStack_EncryptedLogTest {
         val preferenceUtilsWrapper = PreferenceUtils.PreferenceUtilsWrapper(context)
         cleanSharedPreferencesState(preferenceUtilsWrapper)
         initializeEncryptedLogStore(context, preferenceUtilsWrapper)
-        WellSql.delete(EncryptedLogModel::class.java).execute()
+//        WellSql.delete(EncryptedLogModel::class.java).execute()
 //        nextEvent = TestEvents.NONE
     }
 
@@ -144,7 +141,6 @@ internal class ReleaseStack_EncryptedLogTest {
             start()
         }
         val encryptedLogRestClient = EncryptedLogRestClient(requestQueue, BuildConfig.APP_SECRET)
-        val encryptedLogSqlUtils = EncryptedLogSqlUtils()
 
         val key = EncryptedLoggingKey(
             Key.fromBytes(
@@ -157,10 +153,9 @@ internal class ReleaseStack_EncryptedLogTest {
         val logEncrypter = LogEncrypter(key)
         encryptedLogStore = EncryptedLogStore(
             encryptedLogRestClient,
-            encryptedLogSqlUtils,
             logEncrypter,
             preferenceUtilsWrapper,
-            EncryptedWellConfig(context)
+            EncryptedLogDatabase.buildDb(context).encryptedLogDao
         )
     }
 }

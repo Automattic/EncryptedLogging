@@ -1,17 +1,13 @@
 package com.automattic.encryptedlogging.store
 
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploadFailed
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploaded
-import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
-import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
-import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.CLIENT_FAILURE
-import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.CONNECTION_FAILURE
-import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE
+import com.automattic.encryptedlogging.persistence.dao.EncryptedLogDao
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded.EncryptedLogFailedToUpload
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully
 import com.automattic.encryptedlogging.store.UploadEncryptedLogError.InvalidRequest
@@ -21,7 +17,6 @@ import com.automattic.encryptedlogging.store.UploadEncryptedLogError.TooManyRequ
 import com.automattic.encryptedlogging.store.UploadEncryptedLogError.Unknown
 import com.automattic.encryptedlogging.store.UploadEncryptedLogError.UnsatisfiedLinkException
 import com.automattic.encryptedlogging.utils.PreferenceUtils.PreferenceUtilsWrapper
-import com.yarolegovich.wellsql.WellSql
 import java.io.File
 import java.util.Date
 import kotlinx.coroutines.delay
@@ -44,18 +39,13 @@ private const val HTTP_STATUS_CODE_599 = 599
 
 internal class EncryptedLogStore(
     private val encryptedLogRestClient: EncryptedLogRestClient,
-    private val encryptedLogSqlUtils: EncryptedLogSqlUtils,
     private val logEncrypter: LogEncrypter,
     private val preferenceUtils: PreferenceUtilsWrapper,
-    encryptedWellConfig: EncryptedWellConfig,
+    private val encryptedLogDao: EncryptedLogDao,
 ) {
 
     private val _uploadState = MutableStateFlow<OnEncryptedLogUploaded?>(null)
     internal val uploadState = _uploadState
-
-    init {
-        WellSql.init(encryptedWellConfig)
-    }
 
     /**
      * A method for the client to use to start uploading any encrypted logs that might have been queued.
@@ -82,17 +72,20 @@ internal class EncryptedLogStore(
                 uuid = payload.uuid,
                 file = payload.file
         )
-        encryptedLogSqlUtils.insertOrUpdateEncryptedLog(encryptedLog)
+        encryptedLogDao.upsertEncryptedLog(
+            EncryptedLogModel.fromEncryptedLog(encryptedLog)
+        )
 
         if (payload.shouldStartUploadImmediately) {
             uploadNext()
         }
     }
 
-    internal fun resetUploadStates() {
-        encryptedLogSqlUtils.insertOrUpdateEncryptedLogs(encryptedLogSqlUtils.getUploadingEncryptedLogs().map {
-            it.copy(uploadState = FAILED)
-        })
+    internal suspend fun resetUploadStates() {
+        val encryptedLogs =
+            encryptedLogDao.getEncryptedLogs(EncryptedLogUploadState.UPLOADING.value)
+                .map { it.copy(uploadStateDbValue = EncryptedLogUploadState.FAILED.value) }
+        encryptedLogDao.upsertEncryptedLogs(encryptedLogs)
     }
 
     private suspend fun uploadNextWithDelay(delay: Long) {
@@ -107,8 +100,12 @@ internal class EncryptedLogStore(
             return
         }
         // We want to upload a single file at a time
-        encryptedLogSqlUtils.getEncryptedLogForUpload()?.let {
-            uploadEncryptedLog(it)
+        val uploadStates = listOf(
+            EncryptedLogUploadState.QUEUED,
+            EncryptedLogUploadState.FAILED
+        ).map { it.value }
+        encryptedLogDao.getEncryptedLog(uploadStates)?.let {
+            uploadEncryptedLog(EncryptedLog.fromEncryptedLogModel(it))
         }
     }
 
@@ -124,8 +121,8 @@ internal class EncryptedLogStore(
             val encryptedText = logEncrypter.encrypt(text = encryptedLog.file.readText(), uuid = encryptedLog.uuid)
 
             // Update the upload state of the log
-            encryptedLog.copy(uploadState = UPLOADING).let {
-                encryptedLogSqlUtils.insertOrUpdateEncryptedLog(it)
+            encryptedLog.copy(uploadState = EncryptedLogUploadState.UPLOADING).let {
+                encryptedLogDao.upsertEncryptedLog(EncryptedLogModel.fromEncryptedLog(it))
             }
 
             when (val result = encryptedLogRestClient.uploadLog(encryptedLog.uuid, encryptedText)) {
@@ -150,13 +147,13 @@ internal class EncryptedLogStore(
         val failureType = mapUploadEncryptedLogError(error)
 
         val (isFinalFailure, finalFailureCount) = when (failureType) {
-            IRRECOVERABLE_FAILURE -> {
+            EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE -> {
                 Pair(true, encryptedLog.failedCount + 1)
             }
-            CONNECTION_FAILURE -> {
+            EncryptedLogUploadFailureType.CONNECTION_FAILURE -> {
                 Pair(false, encryptedLog.failedCount)
             }
-            CLIENT_FAILURE -> {
+            EncryptedLogUploadFailureType.CLIENT_FAILURE -> {
                 val newFailedCount = encryptedLog.failedCount + 1
                 Pair(newFailedCount >= MAX_RETRY_COUNT, newFailedCount)
             }
@@ -165,11 +162,13 @@ internal class EncryptedLogStore(
         if (isFinalFailure) {
             deleteEncryptedLog(encryptedLog)
         } else {
-            encryptedLogSqlUtils.insertOrUpdateEncryptedLog(
+            encryptedLogDao.upsertEncryptedLog(
+                EncryptedLogModel.fromEncryptedLog(
                     encryptedLog.copy(
-                            uploadState = FAILED,
-                            failedCount = finalFailureCount
+                        uploadState = EncryptedLogUploadState.FAILED,
+                        failedCount = finalFailureCount
                     )
+                )
             )
         }
 
@@ -195,35 +194,35 @@ internal class EncryptedLogStore(
     private fun mapUploadEncryptedLogError(error: UploadEncryptedLogError): EncryptedLogUploadFailureType {
         return when (error) {
             is NoConnection -> {
-                CONNECTION_FAILURE
+                EncryptedLogUploadFailureType.CONNECTION_FAILURE
             }
             is TooManyRequests -> {
-                CONNECTION_FAILURE
+                EncryptedLogUploadFailureType.CONNECTION_FAILURE
             }
             is InvalidRequest -> {
-                IRRECOVERABLE_FAILURE
+                EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE
             }
             is MissingFile -> {
-                IRRECOVERABLE_FAILURE
+                EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE
             }
             is UnsatisfiedLinkException -> {
-                IRRECOVERABLE_FAILURE
+                EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE
             }
             is Unknown -> {
                 when {
                     (HTTP_STATUS_CODE_500..HTTP_STATUS_CODE_599).contains(error.statusCode) -> {
-                        CONNECTION_FAILURE
+                        EncryptedLogUploadFailureType.CONNECTION_FAILURE
                     }
                     else -> {
-                        CLIENT_FAILURE
+                        EncryptedLogUploadFailureType.CLIENT_FAILURE
                     }
                 }
             }
         }
     }
 
-    private fun deleteEncryptedLog(encryptedLog: EncryptedLog) {
-        encryptedLogSqlUtils.deleteEncryptedLogs(listOf(encryptedLog))
+    private suspend fun deleteEncryptedLog(encryptedLog: EncryptedLog) {
+        encryptedLogDao.deleteEncryptedLog(EncryptedLogModel.fromEncryptedLog(encryptedLog))
     }
 
     private fun isValidFile(file: File): Boolean = file.exists() && file.canRead()
@@ -234,8 +233,8 @@ internal class EncryptedLogStore(
      * If we are already uploading another encrypted log or if we are manually delaying the uploads due to server errors
      * encrypted log uploads will not be available.
      */
-    private fun isUploadAvailable(): Boolean {
-        if (encryptedLogSqlUtils.getNumberOfUploadingEncryptedLogs() > 0) {
+    private suspend fun isUploadAvailable(): Boolean {
+        if (encryptedLogDao.getEncryptedLogsCount(EncryptedLogUploadState.UPLOADING.value) > 0) {
             // We are already uploading another log file
             return false
         }
