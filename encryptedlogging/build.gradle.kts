@@ -1,7 +1,7 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.jetbrainsKotlinKapt)
     alias(libs.plugins.automatticPublish)
