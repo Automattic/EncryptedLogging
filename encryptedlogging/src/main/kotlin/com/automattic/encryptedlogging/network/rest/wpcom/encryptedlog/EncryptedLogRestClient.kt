@@ -1,5 +1,6 @@
 package com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog
 
+import android.util.Log
 import com.android.volley.NoConnectionError
 import com.android.volley.RequestQueue
 import com.android.volley.VolleyError
@@ -10,8 +11,6 @@ import com.automattic.encryptedlogging.network.EncryptedLogUploadRequest
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploadFailed
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploaded
 import com.automattic.encryptedlogging.store.UploadEncryptedLogError
-import org.wordpress.android.util.AppLog
-import org.wordpress.android.util.AppLog.T.API
 import kotlin.coroutines.resume
 
 private const val INVALID_REQUEST = "invalid-request"
@@ -54,7 +53,7 @@ internal class EncryptedLogRestClient(
             val json = try {
                 JSONObject(dataString)
             } catch (jsonException: JSONException) {
-                AppLog.e(API, "Received response not in JSON format: " + jsonException.message)
+                Log.e(TAG, "Received response not in JSON format: " + jsonException.message)
                 return UploadEncryptedLogError.Unknown(message = dataString)
             }
             val errorMessage = json.getString("message")
@@ -68,6 +67,10 @@ internal class EncryptedLogRestClient(
             return UploadEncryptedLogError.Unknown(statusCode, errorMessage)
         }
         return UploadEncryptedLogError.Unknown()
+    }
+
+    companion object {
+        private val TAG = EncryptedLogRestClient::class.java.simpleName
     }
 }
 

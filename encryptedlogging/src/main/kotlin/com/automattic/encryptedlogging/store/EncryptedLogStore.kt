@@ -1,5 +1,6 @@
 package com.automattic.encryptedlogging.store
 
+import android.util.Log
 import com.automattic.encryptedlogging.Dispatcher
 import com.automattic.encryptedlogging.action.EncryptedLogAction
 import com.automattic.encryptedlogging.action.EncryptedLogAction.RESET_UPLOAD_STATES
@@ -35,8 +36,6 @@ import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import org.wordpress.android.fluxc.annotations.action.Action
-import org.wordpress.android.util.AppLog
-import org.wordpress.android.util.AppLog.T.API
 
 /**
  * Depending on the error type, we'll keep a record of the earliest date we can try another encrypted log upload.
@@ -67,7 +66,7 @@ internal class EncryptedLogStore constructor(
     }
 
     override fun onRegister() {
-        AppLog.d(API, this.javaClass.name + ": onRegister")
+        Log.d(TAG, this.javaClass.name + ": onRegister")
     }
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
@@ -301,5 +300,9 @@ internal class EncryptedLogStore constructor(
      */
     private enum class EncryptedLogUploadFailureType {
         IRRECOVERABLE_FAILURE, CONNECTION_FAILURE, CLIENT_FAILURE
+    }
+
+    companion object {
+        private val TAG = EncryptedLogStore::class.java.simpleName
     }
 }
