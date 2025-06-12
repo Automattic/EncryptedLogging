@@ -37,6 +37,8 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
     sourceSets["main"].java.srcDirs("src/main/kotlin")
+    sourceSets["test"].java.srcDirs("src/test/kotlin")
+    sourceSets["androidTest"].java.srcDirs("src/androidTest/kotlin")
 }
 
 kotlin {
