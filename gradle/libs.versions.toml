@@ -3,17 +3,18 @@ agp = "8.3.2"
 kotlin = "1.9.23"
 androidx-core = "1.12.0"
 junit = "4.13.2"
-junitVersion = "1.1.5"
-espressoCore = "3.5.1"
+androidx-test-ext = '1.1.5'
+androidx-test-main = "1.1.5"
+androidx-test-espresso = "3.5.1"
 appcompat = "1.6.1"
 fluxc = "2.76.0"
 
 [libraries]
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "junitVersion" }
+androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidx-test-espresso" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext" }
+androidx-test-main-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test-main" }
 assertj = { group = "org.assertj", name = "assertj-core", version = "3.25.3" }
 eventbus = { group = "org.greenrobot", name = "eventbus", version = "3.3.1" }
 fluxc-annotations = { group = "org.wordpress.fluxc", name = "fluxc-annotations", version = "2.76.0" }
