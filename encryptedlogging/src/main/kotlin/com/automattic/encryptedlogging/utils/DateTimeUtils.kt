@@ -32,17 +32,14 @@ internal object DateTimeUtils {
     /**
      * Given a [Date], returns an ISO 8601-formatted String in UTC.
      */
-    fun iso8601UTCFromDate(date: Date?): String {
-        if (date == null) {
-            return ""
-        }
+    fun iso8601UTCFromDate(date: Date): String? {
         val tz = TimeZone.getTimeZone("UTC")
         val formatter = ISO8601_FORMAT.get()
-        formatter!!.timeZone = tz
+        formatter?.timeZone = tz
 
-        val iso8601date = formatter.format(date)
+        val iso8601date = formatter?.format(date)
 
         // Use "+00:00" notation rather than "+0000" to be consistent with the WP.COM API
-        return iso8601date.replace("+0000", "+00:00")
+        return iso8601date?.replace("+0000", "+00:00")
     }
 }
