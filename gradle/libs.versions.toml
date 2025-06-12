@@ -16,7 +16,6 @@ robolectric = "4.14.1"
 terl-lazysodium-android = "5.1.0@aar"
 volley = "1.2.1"
 wordpress-fluxc = "2.76.0"
-wordpress-utils = "3.15.0"
 wordpress-wellsql = "2.0.0"
 
 [libraries]
@@ -37,7 +36,6 @@ terl-lazysodium-android = { module = "com.goterl:lazysodium-android", version.re
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 wordpress-fluxc-annotations = { group = "org.wordpress.fluxc", name = "fluxc-annotations", version.ref = "wordpress-fluxc" }
 wordpress-fluxc-processor = { group = "org.wordpress.fluxc", name = "fluxc-processor", version.ref = "wordpress-fluxc" }
-wordpress-utils = { group = "org.wordpress", name = "utils", version.ref = "wordpress-utils" }
 wordpress-wellsql-main = { group = "org.wordpress", name = "wellsql", version.ref = "wordpress-wellsql" }
 wordpress-wellsql-processor = { group = "org.wordpress.wellsql", name = "wellsql-processor", version.ref = "wordpress-wellsql" }
 
