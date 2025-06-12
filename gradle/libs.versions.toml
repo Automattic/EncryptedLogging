@@ -37,7 +37,7 @@ wordpress-wellsql-processor = { group = "org.wordpress.wellsql", name = "wellsql
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "agp" }
-jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-jetbrainsKotlinKapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 automatticPublish = { id="com.automattic.android.publish-to-s3", version="0.10.0"}
 
