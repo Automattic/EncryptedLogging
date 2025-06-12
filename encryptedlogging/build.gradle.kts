@@ -64,7 +64,7 @@ dependencies {
     implementation(libs.wordpress.wellsql)
     kapt(libs.wordpress.fluxc.processor)
     kapt(libs.wordpress.wellsql.processor)
-    testImplementation(libs.assertj)
+    testImplementation(libs.assertj.core)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.test.ext.junit)
