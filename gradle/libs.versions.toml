@@ -14,7 +14,7 @@ kotlinx-coroutines = '1.10.2'
 robolectric = "4.14.1"
 volley = "1.2.1"
 wordpress-fluxc = "2.76.0"
-wordpress-utils = "3.14.0"
+wordpress-utils = "3.15.0"
 wordpress-wellsql = "2.0.0"
 
 [libraries]
