@@ -7,49 +7,43 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-public class DateTimeUtils private constructor() {
-    init {
-        throw AssertionError()
+internal object DateTimeUtils {
+    // See http://drdobbs.com/java/184405382
+    private val ISO8601_FORMAT: ThreadLocal<DateFormat> = object : ThreadLocal<DateFormat>() {
+        override fun initialValue(): DateFormat {
+            return SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US)
+        }
     }
 
-    public companion object {
-        // See http://drdobbs.com/java/184405382
-        private val ISO8601_FORMAT: ThreadLocal<DateFormat> = object : ThreadLocal<DateFormat>() {
-            override fun initialValue(): DateFormat {
-                return SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US)
-            }
-        }
-
-        /**
-         * Given an ISO 8601-formatted date as a String, returns a [Date] in UTC.
-         */
-        public fun dateUTCFromIso8601(iso8601date: String): Date? {
-            var iso8601date = iso8601date
-            try {
-                iso8601date = iso8601date.replace("Z", "+0000").replace("+00:00", "+0000")
-                val formatter = ISO8601_FORMAT.get()
-                formatter!!.timeZone = TimeZone.getTimeZone("UTC")
-                return formatter.parse(iso8601date)
-            } catch (e: ParseException) {
-                return null
-            }
-        }
-
-        /**
-         * Given a [Date], returns an ISO 8601-formatted String in UTC.
-         */
-        public fun iso8601UTCFromDate(date: Date?): String {
-            if (date == null) {
-                return ""
-            }
-            val tz = TimeZone.getTimeZone("UTC")
+    /**
+     * Given an ISO 8601-formatted date as a String, returns a [Date] in UTC.
+     */
+    fun dateUTCFromIso8601(iso8601date: String): Date? {
+        var iso8601date = iso8601date
+        try {
+            iso8601date = iso8601date.replace("Z", "+0000").replace("+00:00", "+0000")
             val formatter = ISO8601_FORMAT.get()
-            formatter!!.timeZone = tz
-
-            val iso8601date = formatter.format(date)
-
-            // Use "+00:00" notation rather than "+0000" to be consistent with the WP.COM API
-            return iso8601date.replace("+0000", "+00:00")
+            formatter!!.timeZone = TimeZone.getTimeZone("UTC")
+            return formatter.parse(iso8601date)
+        } catch (e: ParseException) {
+            return null
         }
+    }
+
+    /**
+     * Given a [Date], returns an ISO 8601-formatted String in UTC.
+     */
+    fun iso8601UTCFromDate(date: Date?): String {
+        if (date == null) {
+            return ""
+        }
+        val tz = TimeZone.getTimeZone("UTC")
+        val formatter = ISO8601_FORMAT.get()
+        formatter!!.timeZone = tz
+
+        val iso8601date = formatter.format(date)
+
+        // Use "+00:00" notation rather than "+0000" to be consistent with the WP.COM API
+        return iso8601date.replace("+0000", "+00:00")
     }
 }
