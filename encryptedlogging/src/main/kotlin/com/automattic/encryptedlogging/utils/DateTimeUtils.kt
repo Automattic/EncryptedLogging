@@ -19,12 +19,11 @@ internal object DateTimeUtils {
      * Given an ISO 8601-formatted date as a String, returns a [Date] in UTC.
      */
     fun dateUTCFromIso8601(iso8601date: String): Date? {
-        var iso8601date = iso8601date
         try {
-            iso8601date = iso8601date.replace("Z", "+0000").replace("+00:00", "+0000")
+            val replacedIso8601date = iso8601date.replace("Z", "+0000").replace("+00:00", "+0000")
             val formatter = ISO8601_FORMAT.get()
-            formatter!!.timeZone = TimeZone.getTimeZone("UTC")
-            return formatter.parse(iso8601date)
+            formatter?.timeZone = TimeZone.getTimeZone("UTC")
+            return formatter?.parse(replacedIso8601date)
         } catch (e: ParseException) {
             return null
         }
