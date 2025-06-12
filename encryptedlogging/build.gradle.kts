@@ -62,7 +62,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.volley)
     implementation(libs.wordpress.utils)
-    implementation(libs.wordpress.wellsql)
+    implementation(libs.wordpress.wellsql.main)
     kapt(libs.wordpress.fluxc.processor)
     kapt(libs.wordpress.wellsql.processor)
     testImplementation(libs.assertj.core)
