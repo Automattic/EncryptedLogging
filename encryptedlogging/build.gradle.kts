@@ -11,7 +11,7 @@ val secretProperties = loadPropertiesFromFile(file("../secret.properties"))
 
 android {
     namespace = "com.automattic.encryptedlogging"
-    compileSdk = 34
+    compileSdk = 35
 
     android.buildFeatures.buildConfig = true
 
