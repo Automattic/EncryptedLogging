@@ -8,10 +8,12 @@ androidx-test-main = "1.6.2"
 assertj = '3.27.3'
 automattic-publish = "0.10.0"
 eventbus = "3.3.1"
+jna = "5.13.0@aar"
 junit = "4.13.2"
 kotlin = "2.1.21"
 kotlinx-coroutines = '1.10.2'
 robolectric = "4.14.1"
+terl-lazysodium-android = "5.1.0@aar"
 volley = "1.2.1"
 wordpress-fluxc = "2.76.0"
 wordpress-utils = "3.15.0"
@@ -25,10 +27,14 @@ androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version
 androidx-test-main-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test-main" }
 assertj-core = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 eventbus = { group = "org.greenrobot", name = "eventbus", version.ref = "eventbus" }
+# TODO: The native library x86_64/libjnidispatch.so (from net.java.dev.jna:jna:5.13.0) is not 16 KB aligned
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+# TODO: The native library arm64-v8a/libsodium.so (from com.goterl:lazysodium-android:5.1.0) is not 16 KB aligned
+terl-lazysodium-android = { module = "com.goterl:lazysodium-android", version.ref = "terl-lazysodium-android" }
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 wordpress-fluxc-annotations = { group = "org.wordpress.fluxc", name = "fluxc-annotations", version.ref = "wordpress-fluxc" }
 wordpress-fluxc-processor = { group = "org.wordpress.fluxc", name = "fluxc-processor", version.ref = "wordpress-fluxc" }

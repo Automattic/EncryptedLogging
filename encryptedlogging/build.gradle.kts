@@ -74,8 +74,8 @@ dependencies {
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.test.main.runner)
 
-    implementation("com.goterl:lazysodium-android:5.1.0@aar")
-    implementation("net.java.dev.jna:jna:5.13.0@aar")
+    implementation(libs.terl.lazysodium.android.get().toString()) // TODO: https://github.com/gradle/gradle/issues/21267
+    implementation(libs.jna.get().toString()) // TODO: https://github.com/gradle/gradle/issues/21267
 }
 
 project.afterEvaluate {
