@@ -6,7 +6,7 @@ import com.yarolegovich.wellsql.core.annotation.PrimaryKey
 import com.yarolegovich.wellsql.core.annotation.RawConstraints
 import com.yarolegovich.wellsql.core.annotation.Table
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.QUEUED
-import org.wordpress.android.util.DateTimeUtils
+import com.automattic.encryptedlogging.utils.DateTimeUtils
 import java.io.File
 import java.util.Date
 
