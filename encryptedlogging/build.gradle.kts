@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
-    alias(libs.plugins.automatticPublish)
+    alias(libs.plugins.automattic.publish)
 }
 
 val secretProperties = loadPropertiesFromFile(file("../secret.properties"))
