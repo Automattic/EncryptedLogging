@@ -10,6 +10,7 @@ androidx-test-ext = '1.1.5'
 androidx-test-main = "1.1.5"
 androidx-test-espresso = "3.5.1"
 androidx-appcompat = "1.6.1"
+robolectric = "4.11.1"
 wordpress-fluxc = "2.76.0"
 
 [libraries]
@@ -25,7 +26,7 @@ wordpress-fluxc-processor = { group = "org.wordpress.fluxc", name = "fluxc-proce
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
-robolectric = { group = "org.robolectric", name = "robolectric", version = "4.11.1" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 volley = { group = "com.android.volley", name = "volley", version = "1.2.1" }
 wordpress-utils = { group = "org.wordpress", name = "utils", version = "3.14.0" }
 wordpress-wellsql = { group = "org.wordpress", name = "wellsql", version = "2.0.0" }
