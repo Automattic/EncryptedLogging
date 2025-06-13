@@ -67,6 +67,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.test.main.runner)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 
     implementation(libs.terl.lazysodium.android.get().toString()) // TODO: https://github.com/gradle/gradle/issues/21267
     implementation(libs.jna.get().toString()) // TODO: https://github.com/gradle/gradle/issues/21267

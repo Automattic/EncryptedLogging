@@ -28,6 +28,7 @@ import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLo
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
 import com.yarolegovich.wellsql.WellSql
+import kotlinx.coroutines.test.runTest
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -71,7 +72,7 @@ internal class ReleaseStack_EncryptedLogTest {
 
 
     @Test
-    fun testQueueForUpload() {
+    fun testQueueForUpload() = runTest {
         nextEvent = ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY
 
         val testIds = testIds()
@@ -88,7 +89,7 @@ internal class ReleaseStack_EncryptedLogTest {
     }
 
     @Test
-    fun testQueueForUploadForInvalidUuid() {
+    fun testQueueForUploadForInvalidUuid() = runTest {
         nextEvent = ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
 
         mCountDownLatch = CountDownLatch(1)
