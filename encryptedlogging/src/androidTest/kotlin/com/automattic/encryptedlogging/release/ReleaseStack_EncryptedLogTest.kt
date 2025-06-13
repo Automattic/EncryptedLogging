@@ -39,7 +39,6 @@ import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.wordpress.android.fluxc.generated.EncryptedLogActionBuilder
 
 private const val NUMBER_OF_LOGS_TO_UPLOAD = 2
 private const val TEST_UUID_PREFIX = "TEST-UUID-"
@@ -83,7 +82,7 @@ internal class ReleaseStack_EncryptedLogTest {
                     file = createTempFileWithContent(suffix = uuid, content = "Testing FluxC log upload for $uuid at ${System.currentTimeMillis()}"),
                     shouldStartUploadImmediately = true
             )
-            mDispatcher.dispatch(EncryptedLogActionBuilder.newUploadLogAction(payload))
+            encryptedLogStore.queueLogForUpload(payload)
         }
         assertTrue(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS))
     }
@@ -98,7 +97,7 @@ internal class ReleaseStack_EncryptedLogTest {
                 file = createTempFile(suffix = INVALID_UUID),
                 shouldStartUploadImmediately = true
         )
-        mDispatcher.dispatch(EncryptedLogActionBuilder.newUploadLogAction(payload))
+        encryptedLogStore.queueLogForUpload(payload)
         assertTrue(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS))
     }
 

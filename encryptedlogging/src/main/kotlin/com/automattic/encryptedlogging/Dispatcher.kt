@@ -3,7 +3,6 @@ package com.automattic.encryptedlogging
 import android.util.Log
 import com.automattic.encryptedlogging.store.Store
 import org.greenrobot.eventbus.EventBus
-import org.wordpress.android.fluxc.annotations.action.Action
 
 internal class Dispatcher {
     private val mBus: EventBus = EventBus.builder()
@@ -23,10 +22,9 @@ internal class Dispatcher {
         mBus.unregister(`object`)
     }
 
-    fun dispatch(action: Action<*>) {
-        Log.d(TAG, "Dispatching action: " + action.type.javaClass.simpleName
-                + "-" + action.type.toString())
-        post(action)
+    fun dispatch() {
+        Log.d(TAG, "Dispatching")
+        post(TODO())
     }
 
     fun emitChange(changeEvent: Any?) {

@@ -2,9 +2,6 @@ package com.automattic.encryptedlogging.store
 
 import android.util.Log
 import com.automattic.encryptedlogging.Dispatcher
-import com.automattic.encryptedlogging.action.EncryptedLogAction
-import com.automattic.encryptedlogging.action.EncryptedLogAction.RESET_UPLOAD_STATES
-import com.automattic.encryptedlogging.action.EncryptedLogAction.UPLOAD_LOG
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
@@ -29,13 +26,9 @@ import com.automattic.encryptedlogging.utils.PreferenceUtils.PreferenceUtilsWrap
 import com.yarolegovich.wellsql.WellSql
 import java.io.File
 import java.util.Date
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import org.wordpress.android.fluxc.annotations.action.Action
 
 /**
  * Depending on the error type, we'll keep a record of the earliest date we can try another encrypted log upload.
@@ -70,21 +63,8 @@ internal class EncryptedLogStore constructor(
     }
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
-    override fun onAction(action: Action<*>) {
-        val actionType = action.type as? EncryptedLogAction ?: return
-        when (actionType) {
-            UPLOAD_LOG -> {
-                //todo
-                CoroutineScope(Dispatchers.IO).launch {
-                    queueLogForUpload(action.payload as UploadEncryptedLogPayload)
-                }
-            }
-            RESET_UPLOAD_STATES -> {
-                CoroutineScope(Dispatchers.IO).launch {
-                    resetUploadStates()
-                }
-            }
-        }
+    override fun onAction() {
+        // Do nothing
     }
 
     /**
@@ -97,7 +77,7 @@ internal class EncryptedLogStore constructor(
         uploadNext()
     }
 
-    private suspend fun queueLogForUpload(payload: UploadEncryptedLogPayload) {
+    internal suspend fun queueLogForUpload(payload: UploadEncryptedLogPayload) {
         // If the log file is not valid, there is nothing we can do
         if (!isValidFile(payload.file)) {
             emitChange(
@@ -121,7 +101,7 @@ internal class EncryptedLogStore constructor(
         }
     }
 
-    private fun resetUploadStates() {
+    internal fun resetUploadStates() {
         encryptedLogSqlUtils.insertOrUpdateEncryptedLogs(encryptedLogSqlUtils.getUploadingEncryptedLogs().map {
             it.copy(uploadState = FAILED)
         })

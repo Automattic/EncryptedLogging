@@ -15,12 +15,14 @@ import com.automattic.encryptedlogging.store.EncryptedLogStore
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import org.wordpress.android.fluxc.generated.EncryptedLogActionBuilder
 
 public class AutomatticEncryptedLogging(
     context: Context,
@@ -73,7 +75,9 @@ public class AutomatticEncryptedLogging(
             file = file,
             shouldStartUploadImmediately = shouldUploadImmediately
         )
-        dispatcher.dispatch(EncryptedLogActionBuilder.newUploadLogAction(payload))
+        CoroutineScope(Dispatchers.IO).launch {
+            encryptedLogStore.queueLogForUpload(payload)
+        }
     }
 
     override suspend fun uploadEncryptedLogs() {
@@ -81,7 +85,9 @@ public class AutomatticEncryptedLogging(
     }
 
     override fun resetUploadStates() {
-        dispatcher.dispatch(EncryptedLogActionBuilder.newResetUploadStatesAction())
+        CoroutineScope(Dispatchers.IO).launch {
+            encryptedLogStore.resetUploadStates()
+        }
     }
 
     override fun observeEncryptedLogsUploadResult(): StateFlow<OnEncryptedLogUploaded?> {
