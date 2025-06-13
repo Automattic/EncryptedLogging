@@ -18,24 +18,17 @@ import com.goterl.lazysodium.utils.Key
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import java.io.File
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 
 public class AutomatticEncryptedLogging(
     context: Context,
     encryptedLoggingKey: String,
     clientSecret: String,
 ) : EncryptedLogging {
-
-    private val dispatcher = Dispatcher()
     private val encryptedLogStore: EncryptedLogStore
-    private val uploadState = MutableStateFlow<OnEncryptedLogUploaded?>(null)
 
     init {
-        dispatcher.register(this)
         val cache = DiskBasedCache(File.createTempFile("tempcache", null), 1024 * 1024 * 10)
         val network = BasicNetwork(HurlStack())
         val requestQueue = RequestQueue(cache, network).apply {
@@ -54,15 +47,8 @@ public class AutomatticEncryptedLogging(
             encryptedLogSqlUtils,
             logEncrypter,
             preferenceUtilsWrapper,
-            dispatcher,
             EncryptedWellConfig(context)
         )
-    }
-
-    @Suppress("unused")
-    @Subscribe(threadMode = ThreadMode.ASYNC)
-    internal fun onEncryptedLogUploaded(event: OnEncryptedLogUploaded) {
-        uploadState.value = event
     }
 
     override fun enqueueSendingEncryptedLogs(
@@ -91,6 +77,6 @@ public class AutomatticEncryptedLogging(
     }
 
     override fun observeEncryptedLogsUploadResult(): StateFlow<OnEncryptedLogUploaded?> {
-        return uploadState
+        return encryptedLogStore.uploadState
     }
 }

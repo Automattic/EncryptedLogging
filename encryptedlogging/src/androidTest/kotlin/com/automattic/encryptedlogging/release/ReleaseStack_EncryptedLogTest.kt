@@ -8,7 +8,6 @@ import com.android.volley.toolbox.BasicNetwork
 import com.android.volley.toolbox.DiskBasedCache
 import com.android.volley.toolbox.HurlStack
 import com.automattic.encryptedlogging.BuildConfig
-import com.automattic.encryptedlogging.Dispatcher
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLoggingKey
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
@@ -33,7 +32,6 @@ import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
-import org.greenrobot.eventbus.Subscribe
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertThat
@@ -51,8 +49,6 @@ internal class ReleaseStack_EncryptedLogTest {
     private var nextEvent: TestEvents? = null
     lateinit var mCountDownLatch: CountDownLatch
 
-    private val mDispatcher: Dispatcher = Dispatcher()
-
     private enum class TestEvents {
         NONE,
         ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY,
@@ -66,10 +62,8 @@ internal class ReleaseStack_EncryptedLogTest {
         cleanSharedPreferencesState(preferenceUtilsWrapper)
         initializeEncryptedLogStore(context, preferenceUtilsWrapper)
         WellSql.delete(EncryptedLogModel::class.java).execute()
-        mDispatcher.register(this)
         nextEvent = TestEvents.NONE
     }
-
 
     @Test
     fun testQueueForUpload() = runTest {
@@ -102,9 +96,8 @@ internal class ReleaseStack_EncryptedLogTest {
         assertTrue(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS))
     }
 
-    @Suppress("unused")
-    @Subscribe
-    fun onEncryptedLogUploaded(event: OnEncryptedLogUploaded) {
+    @Suppress("unused") // TODO: Convert to testing Coroutines Flow instead of using CountDownLatch.
+    private fun onEncryptedLogUploaded(event: OnEncryptedLogUploaded) {
         when (event) {
             is EncryptedLogUploadedSuccessfully -> {
                 assertThat(nextEvent, `is`(ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY))
@@ -169,7 +162,6 @@ internal class ReleaseStack_EncryptedLogTest {
             encryptedLogSqlUtils,
             logEncrypter,
             preferenceUtilsWrapper,
-            mDispatcher,
             EncryptedWellConfig(context)
         )
     }

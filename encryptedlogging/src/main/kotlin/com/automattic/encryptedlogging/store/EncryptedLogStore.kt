@@ -1,7 +1,5 @@
 package com.automattic.encryptedlogging.store
 
-import android.util.Log
-import com.automattic.encryptedlogging.Dispatcher
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
@@ -27,8 +25,7 @@ import com.yarolegovich.wellsql.WellSql
 import java.io.File
 import java.util.Date
 import kotlinx.coroutines.delay
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * Depending on the error type, we'll keep a record of the earliest date we can try another encrypted log upload.
@@ -45,26 +42,18 @@ private const val MAX_RETRY_COUNT = 3
 private const val HTTP_STATUS_CODE_500 = 500
 private const val HTTP_STATUS_CODE_599 = 599
 
-internal class EncryptedLogStore constructor(
+internal class EncryptedLogStore(
     private val encryptedLogRestClient: EncryptedLogRestClient,
     private val encryptedLogSqlUtils: EncryptedLogSqlUtils,
     private val logEncrypter: LogEncrypter,
     private val preferenceUtils: PreferenceUtilsWrapper,
-    dispatcher: Dispatcher,
     encryptedWellConfig: EncryptedWellConfig,
-) : Store(dispatcher) {
+) {
+    private val _uploadState = MutableStateFlow<OnEncryptedLogUploaded?>(null)
+    internal val uploadState = _uploadState
 
     init {
         WellSql.init(encryptedWellConfig)
-    }
-
-    override fun onRegister() {
-        Log.d(TAG, this.javaClass.name + ": onRegister")
-    }
-
-    @Subscribe(threadMode = ThreadMode.ASYNC)
-    override fun onAction() {
-        // Do nothing
     }
 
     /**
@@ -72,21 +61,18 @@ internal class EncryptedLogStore constructor(
      *
      * This method should be called within a coroutine, possibly in GlobalScope so it's not attached to any one context.
      */
-    @Suppress("unused")
-    suspend fun uploadQueuedEncryptedLogs() {
+    internal suspend fun uploadQueuedEncryptedLogs() {
         uploadNext()
     }
 
     internal suspend fun queueLogForUpload(payload: UploadEncryptedLogPayload) {
         // If the log file is not valid, there is nothing we can do
         if (!isValidFile(payload.file)) {
-            emitChange(
-                    EncryptedLogFailedToUpload(
-                            uuid = payload.uuid,
-                            file = payload.file,
-                            error = MissingFile,
-                            willRetry = false
-                    )
+            _uploadState.value = EncryptedLogFailedToUpload(
+                uuid = payload.uuid,
+                file = payload.file,
+                error = MissingFile,
+                willRetry = false
             )
             return
         }
@@ -151,7 +137,10 @@ internal class EncryptedLogStore constructor(
 
     private suspend fun handleSuccessfulUpload(encryptedLog: EncryptedLog) {
         deleteEncryptedLog(encryptedLog)
-        emitChange(EncryptedLogUploadedSuccessfully(uuid = encryptedLog.uuid, file = encryptedLog.file))
+        _uploadState.value = EncryptedLogUploadedSuccessfully(
+            uuid = encryptedLog.uuid,
+            file = encryptedLog.file
+        )
         uploadNext()
     }
 
@@ -182,13 +171,11 @@ internal class EncryptedLogStore constructor(
             )
         }
 
-        emitChange(
-                EncryptedLogFailedToUpload(
-                        uuid = encryptedLog.uuid,
-                        file = encryptedLog.file,
-                        error = error,
-                        willRetry = !isFinalFailure
-                )
+        _uploadState.value = EncryptedLogFailedToUpload(
+            uuid = encryptedLog.uuid,
+            file = encryptedLog.file,
+            error = error,
+            willRetry = !isFinalFailure
         )
         // If a log failed to upload for the final time, we don't need to add any delay since the log is the problem.
         // Otherwise, the only special case that requires an extra long delay is `TOO_MANY_REQUESTS` upload error.
@@ -280,9 +267,5 @@ internal class EncryptedLogStore constructor(
      */
     private enum class EncryptedLogUploadFailureType {
         IRRECOVERABLE_FAILURE, CONNECTION_FAILURE, CLIENT_FAILURE
-    }
-
-    companion object {
-        private val TAG = EncryptedLogStore::class.java.simpleName
     }
 }
