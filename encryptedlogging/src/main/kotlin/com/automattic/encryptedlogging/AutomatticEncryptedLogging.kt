@@ -17,9 +17,9 @@ import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import java.io.File
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 
 public class AutomatticEncryptedLogging(
     context: Context,
@@ -66,8 +66,10 @@ public class AutomatticEncryptedLogging(
         }
     }
 
-    override suspend fun uploadEncryptedLogs() {
-        encryptedLogStore.uploadQueuedEncryptedLogs()
+    override fun uploadEncryptedLogs() {
+        CoroutineScope(Dispatchers.IO).launch {
+            encryptedLogStore.uploadQueuedEncryptedLogs()
+        }
     }
 
     override fun resetUploadStates() {

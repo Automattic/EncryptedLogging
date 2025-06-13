@@ -1,8 +1,8 @@
 package com.automattic.encryptedlogging
 
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
-import java.io.File
 import kotlinx.coroutines.flow.StateFlow
+import java.io.File
 
 public interface EncryptedLogging {
     /**
@@ -19,7 +19,7 @@ public interface EncryptedLogging {
      *
      * This method should be called within a coroutine, possibly in GlobalScope so it's not attached to any one context.
      */
-    public suspend fun uploadEncryptedLogs()
+    public fun uploadEncryptedLogs()
 
     /**
      * A method for the client to use to reset the upload states. Usually called on app initialization, before [uploadEncryptedLogs]
