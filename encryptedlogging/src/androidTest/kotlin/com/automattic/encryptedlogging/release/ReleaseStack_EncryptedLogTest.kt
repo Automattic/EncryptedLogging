@@ -89,7 +89,7 @@ internal class ReleaseStack_EncryptedLogTest {
         mCountDownLatch = CountDownLatch(1)
         val payload = UploadEncryptedLogPayload(
                 uuid = INVALID_UUID,
-                file = createTempFile(suffix = INVALID_UUID),
+                file = File.createTempFile("test", INVALID_UUID),
                 shouldStartUploadImmediately = true
         )
         encryptedLogStore.queueLogForUpload(payload)
@@ -127,7 +127,7 @@ internal class ReleaseStack_EncryptedLogTest {
     }
 
     private fun createTempFileWithContent(suffix: String, content: String): File {
-        val file = createTempFile(suffix = suffix)
+        val file = File.createTempFile("test", suffix)
         file.writeText(content)
         return file
     }
