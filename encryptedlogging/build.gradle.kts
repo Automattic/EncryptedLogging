@@ -36,6 +36,12 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
+
+    packaging {
+        resources {
+            pickFirsts += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
+    }
 }
 
 kotlin {
@@ -63,6 +69,7 @@ dependencies {
     testImplementation(libs.assertj.core)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
+    androidTestImplementation(libs.assertj.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.test.main.runner)

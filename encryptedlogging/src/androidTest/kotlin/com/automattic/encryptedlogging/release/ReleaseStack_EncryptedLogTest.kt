@@ -28,14 +28,11 @@ import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
 import com.yarolegovich.wellsql.WellSql
 import kotlinx.coroutines.test.runTest
+import org.assertj.core.api.Assertions.assertThat
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
-import org.hamcrest.CoreMatchers.hasItem
-import org.hamcrest.CoreMatchers.`is`
-import org.junit.Assert.assertThat
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -82,7 +79,7 @@ internal class ReleaseStack_EncryptedLogTest {
             )
             encryptedLogStore.queueLogForUpload(payload)
         }
-        assertTrue(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS))
+        assertThat(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS)).isTrue
     }
 
     @Test
@@ -96,25 +93,25 @@ internal class ReleaseStack_EncryptedLogTest {
                 shouldStartUploadImmediately = true
         )
         encryptedLogStore.queueLogForUpload(payload)
-        assertTrue(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS))
+        assertThat(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS)).isTrue
     }
 
     @Suppress("unused") // TODO: Convert to testing Coroutines Flow instead of using CountDownLatch.
     private fun onEncryptedLogUploaded(event: OnEncryptedLogUploaded) {
         when (event) {
             is EncryptedLogUploadedSuccessfully -> {
-                assertThat(nextEvent, `is`(ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY))
-                assertThat(testIds(), hasItem(event.uuid))
+                assertThat(nextEvent).isEqualTo(ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY)
+                assertThat(testIds()).contains(event.uuid)
             }
             is EncryptedLogFailedToUpload -> {
                 when (event.error) {
                     is TooManyRequests -> {
                         // If we are hitting too many requests, we just ignore the test as restarting it will not help
-                        assertThat(event.willRetry, `is`(true))
+                        assertThat(event.willRetry).isEqualTo(true)
                     }
                     is InvalidRequest -> {
-                        assertThat(nextEvent, `is`(ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID))
-                        assertThat(event.willRetry, `is`(false))
+                        assertThat(nextEvent).isEqualTo(ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID)
+                        assertThat(event.willRetry).isEqualTo(false)
                     }
                     else -> {
                         throw AssertionError("Unexpected error occurred in onEncryptedLogUploaded: ${event.error}")
