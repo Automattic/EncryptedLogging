@@ -74,7 +74,10 @@ internal class ReleaseStack_EncryptedLogTest {
         testIds.forEach { uuid ->
             val payload = UploadEncryptedLogPayload(
                     uuid = uuid,
-                    file = createTempFileWithContent(suffix = uuid, content = "Testing FluxC log upload for $uuid at ${System.currentTimeMillis()}"),
+                    file = createTempFileWithContent(
+                        suffix = uuid,
+                        content = "Testing FluxC log upload for $uuid at ${System.currentTimeMillis()}"
+                    ),
                     shouldStartUploadImmediately = true
             )
             encryptedLogStore.queueLogForUpload(payload)
@@ -139,8 +142,14 @@ internal class ReleaseStack_EncryptedLogTest {
         ).commit()
     }
 
-    private fun initializeEncryptedLogStore(context: Context, preferenceUtilsWrapper: PreferenceUtils.PreferenceUtilsWrapper) {
-        val cache = DiskBasedCache(File.createTempFile("tempcache", null), 1024 * 1024) // 1MB cap
+    private fun initializeEncryptedLogStore(
+        context: Context,
+        preferenceUtilsWrapper: PreferenceUtils.PreferenceUtilsWrapper
+    ) {
+        val cache = DiskBasedCache(
+            File.createTempFile("tempcache", null),
+            1024 * 1024 // 1MB cap
+        )
         val network = BasicNetwork(HurlStack())
         val requestQueue = RequestQueue(cache, network).apply {
             start()
