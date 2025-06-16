@@ -6,7 +6,7 @@ import com.yarolegovich.wellsql.core.annotation.PrimaryKey
 import com.yarolegovich.wellsql.core.annotation.RawConstraints
 import com.yarolegovich.wellsql.core.annotation.Table
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.QUEUED
-import org.wordpress.android.util.DateTimeUtils
+import com.automattic.encryptedlogging.utils.DateTimeUtils
 import java.io.File
 import java.util.Date
 
@@ -24,7 +24,9 @@ internal data class EncryptedLog(
     companion object {
         fun fromEncryptedLogModel(encryptedLogModel: EncryptedLogModel) =
                 EncryptedLog(
-                        dateCreated = DateTimeUtils.dateUTCFromIso8601(encryptedLogModel.dateCreated),
+                        dateCreated = DateTimeUtils.dateUTCFromIso8601(
+                            encryptedLogModel.dateCreated ?: ""
+                        ) ?: Date(),
                         // Crash if values are missing which shouldn't happen if there are no logic errors
                         uuid = encryptedLogModel.uuid!!,
                         file = File(encryptedLogModel.filePath),

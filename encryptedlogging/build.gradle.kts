@@ -1,17 +1,17 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
-    alias(libs.plugins.jetbrainsKotlinKapt)
-    alias(libs.plugins.automatticPublish)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.automattic.publish)
 }
 
 val secretProperties = loadPropertiesFromFile(file("../secret.properties"))
 
 android {
     namespace = "com.automattic.encryptedlogging"
-    compileSdk = 34
+    compileSdk = 35
 
     android.buildFeatures.buildConfig = true
 
@@ -30,13 +30,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
-    sourceSets["main"].java.srcDirs("src/main/kotlin")
 }
 
 kotlin {
@@ -57,22 +56,22 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.eventbus)
-    implementation(libs.fluxc.annotations)
-    implementation(libs.kotlin.coroutines)
+    implementation(libs.wordpress.fluxc.annotations)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.volley)
-    implementation(libs.wordpress.utils)
-    implementation(libs.wordpress.wellsql)
-    kapt(libs.fluxc.processor)
+    implementation(libs.wordpress.wellsql.main)
+    kapt(libs.wordpress.fluxc.processor)
     kapt(libs.wordpress.wellsql.processor)
-    testImplementation(libs.assertj)
+    testImplementation(libs.assertj.core)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.test.main.runner)
 
-    implementation("com.goterl:lazysodium-android:5.1.0@aar")
-    implementation("net.java.dev.jna:jna:5.13.0@aar")
+    implementation(libs.terl.lazysodium.android.get().toString()) // TODO: https://github.com/gradle/gradle/issues/21267
+    implementation(libs.jna.get().toString()) // TODO: https://github.com/gradle/gradle/issues/21267
 }
 
 project.afterEvaluate {
