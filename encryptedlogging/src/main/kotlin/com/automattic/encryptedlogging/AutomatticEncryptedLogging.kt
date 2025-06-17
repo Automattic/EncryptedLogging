@@ -42,7 +42,7 @@ public class AutomatticEncryptedLogging(
         val preferenceUtilsWrapper = PreferenceUtils.PreferenceUtilsWrapper(
             context
         )
-        encryptedLogStore = EncryptedLogStore(
+        encryptedLogStore = EncryptedLogStore.getInstance(
             encryptedLogRestClient,
             encryptedLogSqlUtils,
             logEncrypter,

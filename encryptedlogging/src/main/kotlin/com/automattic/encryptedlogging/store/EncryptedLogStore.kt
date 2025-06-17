@@ -42,13 +42,36 @@ private const val MAX_RETRY_COUNT = 3
 private const val HTTP_STATUS_CODE_500 = 500
 private const val HTTP_STATUS_CODE_599 = 599
 
-internal class EncryptedLogStore(
+internal class EncryptedLogStore private constructor(
     private val encryptedLogRestClient: EncryptedLogRestClient,
     private val encryptedLogSqlUtils: EncryptedLogSqlUtils,
     private val logEncrypter: LogEncrypter,
     private val preferenceUtils: PreferenceUtilsWrapper,
     encryptedWellConfig: EncryptedWellConfig,
 ) {
+    companion object {
+        private var instance: EncryptedLogStore? = null
+
+        fun getInstance(
+            encryptedLogRestClient: EncryptedLogRestClient,
+            encryptedLogSqlUtils: EncryptedLogSqlUtils,
+            logEncrypter: LogEncrypter,
+            preferenceUtils: PreferenceUtilsWrapper,
+            encryptedWellConfig: EncryptedWellConfig,
+        ): EncryptedLogStore {
+            if (instance == null) {
+                instance = EncryptedLogStore(
+                    encryptedLogRestClient,
+                    encryptedLogSqlUtils,
+                    logEncrypter,
+                    preferenceUtils,
+                    encryptedWellConfig
+                )
+            }
+            return checkNotNull(instance) { "EncryptedLogStore instance is null, this should never happen." }
+        }
+    }
+
     private val _uploadState = MutableStateFlow<OnEncryptedLogUploaded?>(null)
     internal val uploadState = _uploadState
 

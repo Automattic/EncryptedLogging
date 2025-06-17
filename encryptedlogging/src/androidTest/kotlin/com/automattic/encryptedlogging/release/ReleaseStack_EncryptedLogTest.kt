@@ -1,6 +1,5 @@
 package com.automattic.encryptedlogging.release
 
-import android.content.Context
 import android.util.Base64
 import androidx.test.platform.app.InstrumentationRegistry
 import app.cash.turbine.test
@@ -50,6 +49,8 @@ internal class ReleaseStack_EncryptedLogTest {
     private val testDispatcher = StandardTestDispatcher()
     private val testScope = TestScope(testDispatcher)
 
+    val context = InstrumentationRegistry.getInstrumentation().context
+    val preferenceUtils = PreferenceUtils.PreferenceUtilsWrapper(context)
     lateinit var encryptedLogStore: EncryptedLogStore
 
     private var nextEvent: TestEvents? = null
@@ -63,17 +64,17 @@ internal class ReleaseStack_EncryptedLogTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        val context = InstrumentationRegistry.getInstrumentation().context
-        val preferenceUtilsWrapper = PreferenceUtils.PreferenceUtilsWrapper(context)
-        cleanSharedPreferencesState(preferenceUtilsWrapper)
-        initializeEncryptedLogStore(context, preferenceUtilsWrapper)
-        WellSql.delete(EncryptedLogModel::class.java).execute()
         nextEvent = TestEvents.NONE
+        encryptedLogStore = initializeEncryptedLogStore()
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        // Reset the 'uploadState' of 'EncryptedLogStore' so that both tests can run, because it is now a singleton.
+        encryptedLogStore.uploadState.value = null
+        cleanSharedPreferencesState()
+        WellSql.delete(EncryptedLogModel::class.java).execute()
     }
 
     @Test
@@ -165,17 +166,14 @@ internal class ReleaseStack_EncryptedLogTest {
         return file
     }
 
-    private fun cleanSharedPreferencesState(preferenceUtilsWrapper: PreferenceUtils.PreferenceUtilsWrapper) {
-        preferenceUtilsWrapper.getPreferences().edit().putLong(
+    private fun cleanSharedPreferencesState() {
+        preferenceUtils.getPreferences().edit().putLong(
             ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE,
             -1
         ).commit()
     }
 
-    private fun initializeEncryptedLogStore(
-        context: Context,
-        preferenceUtilsWrapper: PreferenceUtils.PreferenceUtilsWrapper
-    ) {
+    private fun initializeEncryptedLogStore(): EncryptedLogStore {
         val cache = DiskBasedCache(
             File.createTempFile("tempcache", null),
             1024 * 1024 // 1MB cap
@@ -196,11 +194,11 @@ internal class ReleaseStack_EncryptedLogTest {
             )
         )
         val logEncrypter = LogEncrypter(key)
-        encryptedLogStore = EncryptedLogStore(
+        return EncryptedLogStore.getInstance(
             encryptedLogRestClient,
             encryptedLogSqlUtils,
             logEncrypter,
-            preferenceUtilsWrapper,
+            preferenceUtils,
             EncryptedWellConfig(context)
         )
     }
