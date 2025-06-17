@@ -153,7 +153,7 @@ internal class EncryptedLogStore private constructor(
                 is LogUploaded -> handleSuccessfulUpload(encryptedLog)
                 is LogUploadFailed -> handleFailedUpload(encryptedLog, result.error)
             }
-        } catch (e: UnsatisfiedLinkError) {
+        } catch (@Suppress("unused") e: UnsatisfiedLinkError) {
             handleFailedUpload(encryptedLog, UnsatisfiedLinkException)
         }
     }
