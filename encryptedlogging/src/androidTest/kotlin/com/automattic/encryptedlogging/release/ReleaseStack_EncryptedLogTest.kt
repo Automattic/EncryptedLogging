@@ -163,7 +163,7 @@ internal class ReleaseStack_EncryptedLogTest {
     }
 
     private fun cleanSharedPreferencesState(preferenceUtilsWrapper: PreferenceUtils.PreferenceUtilsWrapper) {
-        preferenceUtilsWrapper.getFluxCPreferences().edit().putLong(
+        preferenceUtilsWrapper.getPreferences().edit().putLong(
             ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE,
             -1
         ).commit()

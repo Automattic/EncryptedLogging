@@ -5,13 +5,13 @@ import android.content.SharedPreferences
 
 internal object PreferenceUtils {
     @JvmStatic
-    fun getFluxCPreferences(context: Context): SharedPreferences {
-        return context.getSharedPreferences("${context.packageName}_fluxc-preferences", Context.MODE_PRIVATE)
+    fun getPreferences(context: Context): SharedPreferences {
+        return context.getSharedPreferences("${context.packageName}_encrypted-log-preferences", Context.MODE_PRIVATE)
     }
 
     class PreferenceUtilsWrapper(private val context: Context) {
-        fun getFluxCPreferences(): SharedPreferences {
-            return PreferenceUtils.getFluxCPreferences(context)
+        fun getPreferences(): SharedPreferences {
+            return getPreferences(context)
         }
     }
 }

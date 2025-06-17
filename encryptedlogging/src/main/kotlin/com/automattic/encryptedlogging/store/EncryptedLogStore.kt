@@ -237,14 +237,14 @@ internal class EncryptedLogStore(
             // We are already uploading another log file
             return false
         }
-        preferenceUtils.getFluxCPreferences().getLong(ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE, -1L).let {
+        preferenceUtils.getPreferences().getLong(ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE, -1L).let {
             return it <= Date().time
         }
     }
 
     private fun addUploadDelay(delayDuration: Long) {
         val date = Date().time + delayDuration
-        preferenceUtils.getFluxCPreferences().edit().putLong(ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE, date).apply()
+        preferenceUtils.getPreferences().edit().putLong(ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE, date).apply()
     }
 
     /**
