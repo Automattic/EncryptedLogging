@@ -22,10 +22,10 @@ import com.automattic.encryptedlogging.store.UploadEncryptedLogError.Unknown
 import com.automattic.encryptedlogging.store.UploadEncryptedLogError.UnsatisfiedLinkException
 import com.automattic.encryptedlogging.utils.PreferenceUtils.PreferenceUtilsWrapper
 import com.yarolegovich.wellsql.WellSql
-import java.io.File
-import java.util.Date
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.io.File
+import java.util.Date
 
 /**
  * Depending on the error type, we'll keep a record of the earliest date we can try another encrypted log upload.
@@ -77,8 +77,8 @@ internal class EncryptedLogStore(
             return
         }
         val encryptedLog = EncryptedLog(
-                uuid = payload.uuid,
-                file = payload.file
+            uuid = payload.uuid,
+            file = payload.file
         )
         encryptedLogSqlUtils.insertOrUpdateEncryptedLog(encryptedLog)
 
@@ -151,9 +151,11 @@ internal class EncryptedLogStore(
             IRRECOVERABLE_FAILURE -> {
                 Pair(true, encryptedLog.failedCount + 1)
             }
+
             CONNECTION_FAILURE -> {
                 Pair(false, encryptedLog.failedCount)
             }
+
             CLIENT_FAILURE -> {
                 val newFailedCount = encryptedLog.failedCount + 1
                 Pair(newFailedCount >= MAX_RETRY_COUNT, newFailedCount)
@@ -164,10 +166,10 @@ internal class EncryptedLogStore(
             deleteEncryptedLog(encryptedLog)
         } else {
             encryptedLogSqlUtils.insertOrUpdateEncryptedLog(
-                    encryptedLog.copy(
-                            uploadState = FAILED,
-                            failedCount = finalFailureCount
-                    )
+                encryptedLog.copy(
+                    uploadState = FAILED,
+                    failedCount = finalFailureCount
+                )
             )
         }
 
@@ -195,23 +197,29 @@ internal class EncryptedLogStore(
             is NoConnection -> {
                 CONNECTION_FAILURE
             }
+
             is TooManyRequests -> {
                 CONNECTION_FAILURE
             }
+
             is InvalidRequest -> {
                 IRRECOVERABLE_FAILURE
             }
+
             is MissingFile -> {
                 IRRECOVERABLE_FAILURE
             }
+
             is UnsatisfiedLinkException -> {
                 IRRECOVERABLE_FAILURE
             }
+
             is Unknown -> {
                 when {
                     (HTTP_STATUS_CODE_500..HTTP_STATUS_CODE_599).contains(error.statusCode) -> {
                         CONNECTION_FAILURE
                     }
+
                     else -> {
                         CLIENT_FAILURE
                     }
