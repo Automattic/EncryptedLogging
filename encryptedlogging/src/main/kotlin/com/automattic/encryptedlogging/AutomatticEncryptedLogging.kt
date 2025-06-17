@@ -26,10 +26,17 @@ public class AutomatticEncryptedLogging(
     encryptedLoggingKey: String,
     clientSecret: String,
 ) : EncryptedLogging {
+    private companion object {
+        private const val MAX_CACHE_SIZE_IN_BYTES = 1024 * 1024 * 10
+    }
+
     private val encryptedLogStore: EncryptedLogStore
 
     init {
-        val cache = DiskBasedCache(File.createTempFile("tempcache", null), 1024 * 1024 * 10)
+        val cache = DiskBasedCache(
+            File.createTempFile("tempcache", null),
+            MAX_CACHE_SIZE_IN_BYTES
+        )
         val network = BasicNetwork(HurlStack())
         val requestQueue = RequestQueue(cache, network).apply {
             start()
