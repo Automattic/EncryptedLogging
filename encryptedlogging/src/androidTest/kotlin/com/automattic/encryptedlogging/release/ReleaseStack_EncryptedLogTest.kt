@@ -1,7 +1,7 @@
 package com.automattic.encryptedlogging.release
 
-import android.util.Base64
 import android.content.Context
+import android.util.Base64
 import androidx.test.platform.app.InstrumentationRegistry
 import app.cash.turbine.test
 import com.android.volley.RequestQueue
@@ -19,12 +19,12 @@ import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.Tes
 import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.TestEvents.ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
 import com.automattic.encryptedlogging.store.ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE
 import com.automattic.encryptedlogging.store.EncryptedLogStore
+import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogPayload
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded.EncryptedLogFailedToUpload
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully
 import com.automattic.encryptedlogging.store.UploadEncryptedLogError.InvalidRequest
 import com.automattic.encryptedlogging.store.UploadEncryptedLogError.TooManyRequests
-import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogPayload
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
 import com.yarolegovich.wellsql.WellSql
@@ -37,9 +37,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
-import java.io.File
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 
 private const val NUMBER_OF_LOGS_TO_UPLOAD = 2
 private const val TEST_UUID_PREFIX = "TEST-UUID-"
@@ -134,16 +134,19 @@ internal class ReleaseStack_EncryptedLogTest {
                 assertThat(nextEvent).isEqualTo(ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY)
                 assertThat(testIds()).contains(event.uuid)
             }
+
             is EncryptedLogFailedToUpload -> {
                 when (event.error) {
                     is TooManyRequests -> {
                         // If we are hitting too many requests, we just ignore the test as restarting it will not help
                         assertThat(event.willRetry).isEqualTo(true)
                     }
+
                     is InvalidRequest -> {
                         assertThat(nextEvent).isEqualTo(ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID)
                         assertThat(event.willRetry).isEqualTo(false)
                     }
+
                     else -> {
                         throw AssertionError("Unexpected error occurred in onEncryptedLogUploaded: ${event.error}")
                     }
