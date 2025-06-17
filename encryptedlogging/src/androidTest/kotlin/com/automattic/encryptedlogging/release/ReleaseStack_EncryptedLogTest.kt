@@ -3,6 +3,7 @@ package com.automattic.encryptedlogging.release
 import android.util.Base64
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
+import app.cash.turbine.test
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.BasicNetwork
 import com.android.volley.toolbox.DiskBasedCache
@@ -27,12 +28,16 @@ import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLo
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
 import com.yarolegovich.wellsql.WellSql
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.After
 import java.io.File
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
 import org.junit.Test
 
@@ -40,11 +45,14 @@ private const val NUMBER_OF_LOGS_TO_UPLOAD = 2
 private const val TEST_UUID_PREFIX = "TEST-UUID-"
 private const val INVALID_UUID = "INVALID_UUID" // Underscore is not allowed
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class ReleaseStack_EncryptedLogTest {
+    private val testDispatcher = StandardTestDispatcher()
+    private val testScope = TestScope(testDispatcher)
+
     lateinit var encryptedLogStore: EncryptedLogStore
 
     private var nextEvent: TestEvents? = null
-    lateinit var mCountDownLatch: CountDownLatch
 
     private enum class TestEvents {
         NONE,
@@ -54,6 +62,7 @@ internal class ReleaseStack_EncryptedLogTest {
 
     @Before
     fun setUp() {
+        Dispatchers.setMain(testDispatcher)
         val context = InstrumentationRegistry.getInstrumentation().context
         val preferenceUtilsWrapper = PreferenceUtils.PreferenceUtilsWrapper(context)
         cleanSharedPreferencesState(preferenceUtilsWrapper)
@@ -62,41 +71,63 @@ internal class ReleaseStack_EncryptedLogTest {
         nextEvent = TestEvents.NONE
     }
 
-    @Test
-    fun testQueueForUpload() = runTest {
-        nextEvent = ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
 
+    @Test
+    fun testQueueForUpload() = testScope.runTest {
+        // GIVEN
+        nextEvent = ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY
         val testIds = testIds()
-        mCountDownLatch = CountDownLatch(testIds.size)
-        testIds.forEach { uuid ->
-            val payload = UploadEncryptedLogPayload(
+
+        encryptedLogStore.uploadState.test {
+            // WHEN
+            testIds.forEach { uuid ->
+                val payload = UploadEncryptedLogPayload(
                     uuid = uuid,
                     file = createTempFileWithContent(
                         suffix = uuid,
-                        content = "Testing FluxC log upload for $uuid at ${System.currentTimeMillis()}"
+                        content = "Testing log upload for $uuid at ${System.currentTimeMillis()}"
                     ),
                     shouldStartUploadImmediately = true
-            )
-            encryptedLogStore.queueLogForUpload(payload)
+                )
+                encryptedLogStore.queueLogForUpload(payload)
+            }
+
+            // THEN
+            // First '_uploadState' event is null due to initialization, thus repeat once + number of logs to upload.
+            repeat(1 + NUMBER_OF_LOGS_TO_UPLOAD) {
+                val event: OnEncryptedLogUploaded? = awaitItem()
+                event?.let { onEncryptedLogUploaded(it) }
+            }
         }
-        assertThat(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS)).isTrue
     }
 
     @Test
-    fun testQueueForUploadForInvalidUuid() = runTest {
+    fun testQueueForUploadForInvalidUuid() = testScope.runTest {
+        // GIVEN
         nextEvent = ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
 
-        mCountDownLatch = CountDownLatch(1)
-        val payload = UploadEncryptedLogPayload(
+        encryptedLogStore.uploadState.test {
+            // WHEN
+            val payload = UploadEncryptedLogPayload(
                 uuid = INVALID_UUID,
                 file = File.createTempFile("test", INVALID_UUID),
                 shouldStartUploadImmediately = true
-        )
-        encryptedLogStore.queueLogForUpload(payload)
-        assertThat(mCountDownLatch.await(30.seconds.inWholeMilliseconds, TimeUnit.MILLISECONDS)).isTrue
+            )
+            encryptedLogStore.queueLogForUpload(payload)
+
+            // THEN
+            // First '_uploadState' event is 'null' due to initialization, thus repeat twice.
+            repeat(2) {
+                val event: OnEncryptedLogUploaded? = awaitItem()
+                event?.let { onEncryptedLogUploaded(it) }
+            }
+        }
     }
 
-    @Suppress("unused") // TODO: Convert to testing Coroutines Flow instead of using CountDownLatch.
     private fun onEncryptedLogUploaded(event: OnEncryptedLogUploaded) {
         when (event) {
             is EncryptedLogUploadedSuccessfully -> {
@@ -119,7 +150,6 @@ internal class ReleaseStack_EncryptedLogTest {
                 }
             }
         }
-        mCountDownLatch.countDown()
     }
 
     private fun testIds() = (1..NUMBER_OF_LOGS_TO_UPLOAD).map { i ->
