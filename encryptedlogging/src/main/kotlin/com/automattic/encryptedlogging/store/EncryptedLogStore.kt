@@ -1,5 +1,6 @@
 package com.automattic.encryptedlogging.store
 
+import androidx.core.content.edit
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
@@ -275,7 +276,7 @@ internal class EncryptedLogStore private constructor(
 
     private fun addUploadDelay(delayDuration: Long) {
         val date = Date().time + delayDuration
-        preferenceUtils.getPreferences().edit().putLong(ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE, date).apply()
+        preferenceUtils.getPreferences().edit { putLong(ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE, date) }
     }
 
     /**
