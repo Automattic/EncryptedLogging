@@ -27,13 +27,8 @@ import com.automattic.encryptedlogging.store.UploadEncryptedLogError.TooManyRequ
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
 import com.yarolegovich.wellsql.WellSql
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
@@ -46,8 +41,6 @@ private const val INVALID_UUID = "INVALID_UUID" // Underscore is not allowed
 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class ReleaseStack_EncryptedLogTest {
-    private val testDispatcher = StandardTestDispatcher()
-    private val testScope = TestScope(testDispatcher)
 
     val context = InstrumentationRegistry.getInstrumentation().context
     val preferenceUtils = PreferenceUtils.PreferenceUtilsWrapper(context)
@@ -63,14 +56,12 @@ internal class ReleaseStack_EncryptedLogTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         nextEvent = TestEvents.NONE
         encryptedLogStore = initializeEncryptedLogStore()
     }
 
     @After
     fun tearDown() {
-        Dispatchers.resetMain()
         // Reset the 'uploadState' of 'EncryptedLogStore' so that both tests can run, because it is now a singleton.
         encryptedLogStore.uploadState.value = null
         cleanSharedPreferencesState()
@@ -78,7 +69,7 @@ internal class ReleaseStack_EncryptedLogTest {
     }
 
     @Test
-    fun testQueueForUpload() = testScope.runTest {
+    fun testQueueForUpload() = runTest {
         // GIVEN
         nextEvent = ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY
         val testIds = testIds()
@@ -107,7 +98,7 @@ internal class ReleaseStack_EncryptedLogTest {
     }
 
     @Test
-    fun testQueueForUploadForInvalidUuid() = testScope.runTest {
+    fun testQueueForUploadForInvalidUuid() = runTest {
         // GIVEN
         nextEvent = ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
 
