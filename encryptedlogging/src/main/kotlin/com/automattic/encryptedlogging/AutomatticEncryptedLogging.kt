@@ -68,19 +68,19 @@ public class AutomatticEncryptedLogging(
             file = file,
             shouldStartUploadImmediately = shouldUploadImmediately
         )
-        CoroutineScope(Dispatchers.IO).launch {
+        sdkScope.launch {
             encryptedLogStore.queueLogForUpload(payload)
         }
     }
 
     override fun uploadEncryptedLogs() {
-        CoroutineScope(Dispatchers.IO).launch {
+        sdkScope.launch {
             encryptedLogStore.uploadQueuedEncryptedLogs()
         }
     }
 
     override fun resetUploadStates() {
-        CoroutineScope(Dispatchers.IO).launch {
+        sdkScope.launch {
             encryptedLogStore.resetUploadStates()
         }
     }
