@@ -15,26 +15,28 @@ import com.automattic.encryptedlogging.store.EncryptedLogStore
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
-import java.io.File
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
-import org.wordpress.android.fluxc.generated.EncryptedLogActionBuilder
+import kotlinx.coroutines.launch
+import java.io.File
 
 public class AutomatticEncryptedLogging(
     context: Context,
     encryptedLoggingKey: String,
     clientSecret: String,
 ) : EncryptedLogging {
+    private companion object {
+        private const val MAX_CACHE_SIZE_IN_BYTES = 1024 * 1024 * 10
+    }
 
-    private val dispatcher = Dispatcher()
     private val encryptedLogStore: EncryptedLogStore
-    private val uploadState = MutableStateFlow<OnEncryptedLogUploaded?>(null)
 
     init {
-        dispatcher.register(this)
-        val cache = DiskBasedCache(File.createTempFile("tempcache", null), 1024 * 1024 * 10)
+        val cache = DiskBasedCache(
+            File.createTempFile("tempcache", null),
+            MAX_CACHE_SIZE_IN_BYTES
+        )
         val network = BasicNetwork(HurlStack())
         val requestQueue = RequestQueue(cache, network).apply {
             start()
@@ -47,20 +49,13 @@ public class AutomatticEncryptedLogging(
         val preferenceUtilsWrapper = PreferenceUtils.PreferenceUtilsWrapper(
             context
         )
-        encryptedLogStore = EncryptedLogStore(
+        encryptedLogStore = EncryptedLogStore.getInstance(
             encryptedLogRestClient,
             encryptedLogSqlUtils,
             logEncrypter,
             preferenceUtilsWrapper,
-            dispatcher,
             EncryptedWellConfig(context)
         )
-    }
-
-    @Suppress("unused")
-    @Subscribe(threadMode = ThreadMode.ASYNC)
-    internal fun onEncryptedLogUploaded(event: OnEncryptedLogUploaded) {
-        uploadState.value = event
     }
 
     override fun enqueueSendingEncryptedLogs(
@@ -73,18 +68,24 @@ public class AutomatticEncryptedLogging(
             file = file,
             shouldStartUploadImmediately = shouldUploadImmediately
         )
-        dispatcher.dispatch(EncryptedLogActionBuilder.newUploadLogAction(payload))
+        sdkScope.launch {
+            encryptedLogStore.queueLogForUpload(payload)
+        }
     }
 
-    override suspend fun uploadEncryptedLogs() {
-        encryptedLogStore.uploadQueuedEncryptedLogs()
+    override fun uploadEncryptedLogs() {
+        sdkScope.launch {
+            encryptedLogStore.uploadQueuedEncryptedLogs()
+        }
     }
 
     override fun resetUploadStates() {
-        dispatcher.dispatch(EncryptedLogActionBuilder.newResetUploadStatesAction())
+        sdkScope.launch {
+            encryptedLogStore.resetUploadStates()
+        }
     }
 
     override fun observeEncryptedLogsUploadResult(): StateFlow<OnEncryptedLogUploaded?> {
-        return uploadState
+        return encryptedLogStore.uploadState
     }
 }

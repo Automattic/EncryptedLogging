@@ -34,8 +34,6 @@ dependencyResolutionManagement {
                 includeGroup("org.wordpress")
                 includeGroup("org.wordpress.wellsql")
                 includeGroup("org.wordpress.wellsql.wellsql-processor")
-                includeGroup("org.wordpress.fluxc")
-                includeGroup("org.wordpress.fluxc.plugins")
             }
         }
     }

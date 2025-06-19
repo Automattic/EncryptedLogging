@@ -36,6 +36,12 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
+
+    packaging {
+        resources {
+            pickFirsts += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
+    }
 }
 
 kotlin {
@@ -55,20 +61,20 @@ fun loadPropertiesFromFile(file: File): Properties {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(libs.eventbus)
-    implementation(libs.wordpress.fluxc.annotations)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.volley)
     implementation(libs.wordpress.wellsql.main)
-    kapt(libs.wordpress.fluxc.processor)
     kapt(libs.wordpress.wellsql.processor)
     testImplementation(libs.assertj.core)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
+    androidTestImplementation(libs.assertj.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.test.main.runner)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.turbine)
 
     implementation(libs.terl.lazysodium.android.get().toString()) // TODO: https://github.com/gradle/gradle/issues/21267
     implementation(libs.jna.get().toString()) // TODO: https://github.com/gradle/gradle/issues/21267
