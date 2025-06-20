@@ -2,25 +2,12 @@ package com.automattic.encryptedlogging.store
 
 import androidx.core.content.edit
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.FAILED
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.UPLOADING
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
-import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploadFailed
-import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploaded
+import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult
 import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
 import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
-import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.CLIENT_FAILURE
-import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.CONNECTION_FAILURE
-import com.automattic.encryptedlogging.store.EncryptedLogStore.EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE
-import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded.EncryptedLogFailedToUpload
-import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully
-import com.automattic.encryptedlogging.store.UploadEncryptedLogError.InvalidRequest
-import com.automattic.encryptedlogging.store.UploadEncryptedLogError.MissingFile
-import com.automattic.encryptedlogging.store.UploadEncryptedLogError.NoConnection
-import com.automattic.encryptedlogging.store.UploadEncryptedLogError.TooManyRequests
-import com.automattic.encryptedlogging.store.UploadEncryptedLogError.Unknown
-import com.automattic.encryptedlogging.store.UploadEncryptedLogError.UnsatisfiedLinkException
 import com.automattic.encryptedlogging.utils.PreferenceUtils.PreferenceUtilsWrapper
 import com.yarolegovich.wellsql.WellSql
 import kotlinx.coroutines.delay
@@ -92,10 +79,10 @@ internal class EncryptedLogStore private constructor(
     internal suspend fun queueLogForUpload(payload: UploadEncryptedLogPayload) {
         // If the log file is not valid, there is nothing we can do
         if (!isValidFile(payload.file)) {
-            _uploadState.value = EncryptedLogFailedToUpload(
+            _uploadState.value = OnEncryptedLogUploaded.EncryptedLogFailedToUpload(
                 uuid = payload.uuid,
                 file = payload.file,
-                error = MissingFile,
+                error = UploadEncryptedLogError.MissingFile,
                 willRetry = false
             )
             return
@@ -113,7 +100,7 @@ internal class EncryptedLogStore private constructor(
 
     internal fun resetUploadStates() {
         encryptedLogSqlUtils.insertOrUpdateEncryptedLogs(encryptedLogSqlUtils.getUploadingEncryptedLogs().map {
-            it.copy(uploadState = FAILED)
+            it.copy(uploadState = EncryptedLogUploadState.FAILED)
         })
     }
 
@@ -138,7 +125,7 @@ internal class EncryptedLogStore private constructor(
     private suspend fun uploadEncryptedLog(encryptedLog: EncryptedLog) {
         // If the log file doesn't exist, fail immediately and try the next log file
         if (!isValidFile(encryptedLog.file)) {
-            handleFailedUpload(encryptedLog, MissingFile)
+            handleFailedUpload(encryptedLog, UploadEncryptedLogError.MissingFile)
             uploadNext()
             return
         }
@@ -146,22 +133,22 @@ internal class EncryptedLogStore private constructor(
             val encryptedText = logEncrypter.encrypt(text = encryptedLog.file.readText(), uuid = encryptedLog.uuid)
 
             // Update the upload state of the log
-            encryptedLog.copy(uploadState = UPLOADING).let {
+            encryptedLog.copy(uploadState = EncryptedLogUploadState.UPLOADING).let {
                 encryptedLogSqlUtils.insertOrUpdateEncryptedLog(it)
             }
 
             when (val result = encryptedLogRestClient.uploadLog(encryptedLog.uuid, encryptedText)) {
-                is LogUploaded -> handleSuccessfulUpload(encryptedLog)
-                is LogUploadFailed -> handleFailedUpload(encryptedLog, result.error)
+                is UploadEncryptedLogResult.LogUploaded -> handleSuccessfulUpload(encryptedLog)
+                is UploadEncryptedLogResult.LogUploadFailed -> handleFailedUpload(encryptedLog, result.error)
             }
         } catch (@Suppress("unused") e: UnsatisfiedLinkError) {
-            handleFailedUpload(encryptedLog, UnsatisfiedLinkException)
+            handleFailedUpload(encryptedLog, UploadEncryptedLogError.UnsatisfiedLinkException)
         }
     }
 
     private suspend fun handleSuccessfulUpload(encryptedLog: EncryptedLog) {
         deleteEncryptedLog(encryptedLog)
-        _uploadState.value = EncryptedLogUploadedSuccessfully(
+        _uploadState.value = OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully(
             uuid = encryptedLog.uuid,
             file = encryptedLog.file
         )
@@ -172,15 +159,15 @@ internal class EncryptedLogStore private constructor(
         val failureType = mapUploadEncryptedLogError(error)
 
         val (isFinalFailure, finalFailureCount) = when (failureType) {
-            IRRECOVERABLE_FAILURE -> {
+            EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE -> {
                 Pair(true, encryptedLog.failedCount + 1)
             }
 
-            CONNECTION_FAILURE -> {
+            EncryptedLogUploadFailureType.CONNECTION_FAILURE -> {
                 Pair(false, encryptedLog.failedCount)
             }
 
-            CLIENT_FAILURE -> {
+            EncryptedLogUploadFailureType.CLIENT_FAILURE -> {
                 val newFailedCount = encryptedLog.failedCount + 1
                 Pair(newFailedCount >= MAX_RETRY_COUNT, newFailedCount)
             }
@@ -191,13 +178,13 @@ internal class EncryptedLogStore private constructor(
         } else {
             encryptedLogSqlUtils.insertOrUpdateEncryptedLog(
                 encryptedLog.copy(
-                    uploadState = FAILED,
+                    uploadState = EncryptedLogUploadState.FAILED,
                     failedCount = finalFailureCount
                 )
             )
         }
 
-        _uploadState.value = EncryptedLogFailedToUpload(
+        _uploadState.value = OnEncryptedLogUploaded.EncryptedLogFailedToUpload(
             uuid = encryptedLog.uuid,
             file = encryptedLog.file,
             error = error,
@@ -208,7 +195,7 @@ internal class EncryptedLogStore private constructor(
         if (isFinalFailure) {
             uploadNext()
         } else {
-            if (error is TooManyRequests) {
+            if (error is UploadEncryptedLogError.TooManyRequests) {
                 uploadNextWithDelay(TOO_MANY_REQUESTS_ERROR_DELAY)
             } else {
                 uploadNextWithDelay(REGULAR_UPLOAD_FAILURE_DELAY)
@@ -218,34 +205,34 @@ internal class EncryptedLogStore private constructor(
 
     private fun mapUploadEncryptedLogError(error: UploadEncryptedLogError): EncryptedLogUploadFailureType {
         return when (error) {
-            is NoConnection -> {
-                CONNECTION_FAILURE
+            is UploadEncryptedLogError.NoConnection -> {
+                EncryptedLogUploadFailureType.CONNECTION_FAILURE
             }
 
-            is TooManyRequests -> {
-                CONNECTION_FAILURE
+            is UploadEncryptedLogError.TooManyRequests -> {
+                EncryptedLogUploadFailureType.CONNECTION_FAILURE
             }
 
-            is InvalidRequest -> {
-                IRRECOVERABLE_FAILURE
+            is UploadEncryptedLogError.InvalidRequest -> {
+                EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE
             }
 
-            is MissingFile -> {
-                IRRECOVERABLE_FAILURE
+            is UploadEncryptedLogError.MissingFile -> {
+                EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE
             }
 
-            is UnsatisfiedLinkException -> {
-                IRRECOVERABLE_FAILURE
+            is UploadEncryptedLogError.UnsatisfiedLinkException -> {
+                EncryptedLogUploadFailureType.IRRECOVERABLE_FAILURE
             }
 
-            is Unknown -> {
+            is UploadEncryptedLogError.Unknown -> {
                 when {
                     (HTTP_STATUS_CODE_500..HTTP_STATUS_CODE_599).contains(error.statusCode) -> {
-                        CONNECTION_FAILURE
+                        EncryptedLogUploadFailureType.CONNECTION_FAILURE
                     }
 
                     else -> {
-                        CLIENT_FAILURE
+                        EncryptedLogUploadFailureType.CLIENT_FAILURE
                     }
                 }
             }
