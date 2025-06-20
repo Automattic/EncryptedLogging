@@ -8,8 +8,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import org.json.JSONException
 import org.json.JSONObject
 import com.automattic.encryptedlogging.network.EncryptedLogUploadRequest
-import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploadFailed
-import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult.LogUploaded
 import com.automattic.encryptedlogging.store.UploadEncryptedLogError
 import kotlin.coroutines.resume
 
@@ -23,9 +21,9 @@ internal class EncryptedLogRestClient(
     suspend fun uploadLog(logUuid: String, contents: String): UploadEncryptedLogResult {
         return suspendCancellableCoroutine { cont ->
             val request = EncryptedLogUploadRequest(logUuid, contents, clientSecret, {
-                cont.resume(LogUploaded)
+                cont.resume(UploadEncryptedLogResult.LogUploaded)
             }, { error ->
-                cont.resume(LogUploadFailed(mapError(error)))
+                cont.resume(UploadEncryptedLogResult.LogUploadFailed(mapError(error)))
             })
             cont.invokeOnCancellation { request.cancel() }
             requestQueue.add(request)
