@@ -5,7 +5,6 @@ import com.yarolegovich.wellsql.core.annotation.Column
 import com.yarolegovich.wellsql.core.annotation.PrimaryKey
 import com.yarolegovich.wellsql.core.annotation.RawConstraints
 import com.yarolegovich.wellsql.core.annotation.Table
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState.QUEUED
 import com.automattic.encryptedlogging.utils.DateTimeUtils
 import java.io.File
 import java.util.Date
@@ -18,7 +17,7 @@ internal data class EncryptedLog(
     val uuid: String,
     val file: File,
     val dateCreated: Date = Date(),
-    val uploadState: EncryptedLogUploadState = QUEUED,
+    val uploadState: EncryptedLogUploadState = EncryptedLogUploadState.QUEUED,
     val failedCount: Int = 0
 ) {
     companion object {
@@ -42,7 +41,7 @@ internal class EncryptedLogModel(@PrimaryKey @Column private var id: Int = 0) : 
     @Column var uuid: String? = null
     @Column var filePath: String? = null
     @Column var dateCreated: String? = null // ISO 8601-formatted date in UTC, e.g. 1955-11-05T14:15:00Z
-    @Column var uploadStateDbValue: Int = QUEUED.value
+    @Column var uploadStateDbValue: Int = EncryptedLogUploadState.QUEUED.value
     @Column var failedCount: Int = 0
 
     override fun getId(): Int = id
