@@ -10,7 +10,6 @@ import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLoggingKe
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
 import com.automattic.encryptedlogging.persistence.EncryptedLogDatabase
-import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
 import com.automattic.encryptedlogging.store.EncryptedLogStore
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
 import com.automattic.encryptedlogging.utils.PreferenceUtils
@@ -41,7 +40,6 @@ public class AutomatticEncryptedLogging(
         }
         val encryptedLogRestClient = EncryptedLogRestClient(requestQueue, clientSecret)
         val database = EncryptedLogDatabase.getInstance(context)
-        val encryptedLogSqlUtils = EncryptedLogSqlUtils()
         val logEncrypter = LogEncrypter(
             EncryptedLoggingKey(Key.fromBytes(Base64.decode(encryptedLoggingKey, Base64.DEFAULT)))
         )
@@ -50,7 +48,7 @@ public class AutomatticEncryptedLogging(
         )
         encryptedLogStore = EncryptedLogStore.getInstance(
             encryptedLogRestClient,
-            encryptedLogSqlUtils,
+            database.encryptedLogDao,
             logEncrypter,
             preferenceUtilsWrapper,
         )

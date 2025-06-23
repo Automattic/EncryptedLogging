@@ -12,7 +12,6 @@ import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLoggingKe
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
 import com.automattic.encryptedlogging.persistence.EncryptedLogDatabase
-import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
 import com.automattic.encryptedlogging.store.EncryptedLogStore
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
 import com.automattic.encryptedlogging.store.UploadEncryptedLogError
@@ -34,6 +33,7 @@ private const val INVALID_UUID = "INVALID_UUID" // Underscore is not allowed
 internal class ReleaseStack_EncryptedLogTest {
 
     val context = InstrumentationRegistry.getInstrumentation().context
+    val database = EncryptedLogDatabase.getInstance(context)
     val preferenceUtils = PreferenceUtils.PreferenceUtilsWrapper(context)
     lateinit var encryptedLogStore: EncryptedLogStore
 
@@ -52,10 +52,11 @@ internal class ReleaseStack_EncryptedLogTest {
     }
 
     @After
-    fun tearDown() {
+    fun tearDown() = runTest {
         // Reset the 'uploadState' of 'EncryptedLogStore' so that both tests can run, because it is now a singleton.
         encryptedLogStore.uploadState.value = null
         cleanSharedPreferencesState()
+        database.encryptedLogDao.deleteEncryptedLogs()
     }
 
     @Test
@@ -164,8 +165,6 @@ internal class ReleaseStack_EncryptedLogTest {
             start()
         }
         val encryptedLogRestClient = EncryptedLogRestClient(requestQueue, BuildConfig.APP_SECRET)
-        val database = EncryptedLogDatabase.getInstance(context)
-        val encryptedLogSqlUtils = EncryptedLogSqlUtils()
 
         val key = EncryptedLoggingKey(
             Key.fromBytes(
@@ -178,7 +177,7 @@ internal class ReleaseStack_EncryptedLogTest {
         val logEncrypter = LogEncrypter(key)
         return EncryptedLogStore.getInstance(
             encryptedLogRestClient,
-            encryptedLogSqlUtils,
+            database.encryptedLogDao,
             logEncrypter,
             preferenceUtils,
         )

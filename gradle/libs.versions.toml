@@ -3,9 +3,10 @@ agp = "8.10.1"
 androidx-appcompat = "1.7.1"
 androidx-core = "1.16.0"
 androidx-room = "2.7.2"
+androidx-test-core = "1.6.1"
 androidx-test-espresso = "3.6.1"
 androidx-test-ext = '1.2.1'
-androidx-test-main = "1.6.2"
+androidx-test-runner = "1.6.2"
 assertj = '3.27.3'
 automattic-publish = "0.10.0"
 jna = "5.17.0@aar"
@@ -24,9 +25,10 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "androidx-room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "androidx-room" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "androidx-room" }
+androidx-test-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "androidx-test-core" }
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidx-test-espresso" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext" }
-androidx-test-main-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test-main" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test-runner" }
 assertj-core = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

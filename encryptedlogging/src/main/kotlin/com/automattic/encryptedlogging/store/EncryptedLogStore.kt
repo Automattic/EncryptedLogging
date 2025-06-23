@@ -2,11 +2,12 @@ package com.automattic.encryptedlogging.store
 
 import androidx.core.content.edit
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult
-import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
+import com.automattic.encryptedlogging.persistence.dao.EncryptedLogDao
 import com.automattic.encryptedlogging.utils.PreferenceUtils.PreferenceUtilsWrapper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +31,7 @@ private const val HTTP_STATUS_CODE_599 = 599
 
 internal class EncryptedLogStore private constructor(
     private val encryptedLogRestClient: EncryptedLogRestClient,
-    private val encryptedLogSqlUtils: EncryptedLogSqlUtils,
+    private val encryptedLogDao: EncryptedLogDao,
     private val logEncrypter: LogEncrypter,
     private val preferenceUtils: PreferenceUtilsWrapper,
 ) {
@@ -39,14 +40,14 @@ internal class EncryptedLogStore private constructor(
 
         fun getInstance(
             encryptedLogRestClient: EncryptedLogRestClient,
-            encryptedLogSqlUtils: EncryptedLogSqlUtils,
+            encryptedLogDao: EncryptedLogDao,
             logEncrypter: LogEncrypter,
             preferenceUtils: PreferenceUtilsWrapper,
         ): EncryptedLogStore {
             if (instance == null) {
                 instance = EncryptedLogStore(
                     encryptedLogRestClient,
-                    encryptedLogSqlUtils,
+                    encryptedLogDao,
                     logEncrypter,
                     preferenceUtils,
                 )
@@ -82,17 +83,19 @@ internal class EncryptedLogStore private constructor(
             uuid = payload.uuid,
             file = payload.file
         )
-        encryptedLogSqlUtils.insertOrUpdateEncryptedLog(encryptedLog)
+        encryptedLogDao.upsertEncryptedLog(
+            EncryptedLogModel.fromEncryptedLog(encryptedLog)
+        )
 
         if (payload.shouldStartUploadImmediately) {
             uploadNext()
         }
     }
 
-    internal fun resetUploadStates() {
-        encryptedLogSqlUtils.insertOrUpdateEncryptedLogs(encryptedLogSqlUtils.getUploadingEncryptedLogs().map {
-            it.copy(uploadState = EncryptedLogUploadState.FAILED)
-        })
+    internal suspend fun resetUploadStates() {
+        val encryptedLogs = encryptedLogDao.getEncryptedLogs(EncryptedLogUploadState.UPLOADING.value)
+            .map { it.copy(uploadStateDbValue = EncryptedLogUploadState.FAILED.value) }
+        encryptedLogDao.upsertEncryptedLogs(encryptedLogs)
     }
 
     private suspend fun uploadNextWithDelay(delay: Long) {
@@ -107,8 +110,12 @@ internal class EncryptedLogStore private constructor(
             return
         }
         // We want to upload a single file at a time
-        encryptedLogSqlUtils.getEncryptedLogForUpload()?.let {
-            uploadEncryptedLog(it)
+        val uploadStates = listOf(
+            EncryptedLogUploadState.QUEUED,
+            EncryptedLogUploadState.FAILED
+        ).map { it.value }
+        encryptedLogDao.getEncryptedLog(uploadStates)?.let {
+            uploadEncryptedLog(EncryptedLog.fromEncryptedLogModel(it))
         }
     }
 
@@ -125,7 +132,7 @@ internal class EncryptedLogStore private constructor(
 
             // Update the upload state of the log
             encryptedLog.copy(uploadState = EncryptedLogUploadState.UPLOADING).let {
-                encryptedLogSqlUtils.insertOrUpdateEncryptedLog(it)
+                encryptedLogDao.upsertEncryptedLog(EncryptedLogModel.fromEncryptedLog(it))
             }
 
             when (val result = encryptedLogRestClient.uploadLog(encryptedLog.uuid, encryptedText)) {
@@ -167,10 +174,12 @@ internal class EncryptedLogStore private constructor(
         if (isFinalFailure) {
             deleteEncryptedLog(encryptedLog)
         } else {
-            encryptedLogSqlUtils.insertOrUpdateEncryptedLog(
-                encryptedLog.copy(
-                    uploadState = EncryptedLogUploadState.FAILED,
-                    failedCount = finalFailureCount
+            encryptedLogDao.upsertEncryptedLog(
+                EncryptedLogModel.fromEncryptedLog(
+                    encryptedLog.copy(
+                        uploadState = EncryptedLogUploadState.FAILED,
+                        failedCount = finalFailureCount
+                    )
                 )
             )
         }
@@ -230,8 +239,8 @@ internal class EncryptedLogStore private constructor(
         }
     }
 
-    private fun deleteEncryptedLog(encryptedLog: EncryptedLog) {
-        encryptedLogSqlUtils.deleteEncryptedLogs(listOf(encryptedLog))
+    private suspend fun deleteEncryptedLog(encryptedLog: EncryptedLog) {
+        encryptedLogDao.deleteEncryptedLog(EncryptedLogModel.fromEncryptedLog(encryptedLog))
     }
 
     private fun isValidFile(file: File): Boolean = file.exists() && file.canRead()
@@ -242,8 +251,8 @@ internal class EncryptedLogStore private constructor(
      * If we are already uploading another encrypted log or if we are manually delaying the uploads due to server errors
      * encrypted log uploads will not be available.
      */
-    private fun isUploadAvailable(): Boolean {
-        if (encryptedLogSqlUtils.getNumberOfUploadingEncryptedLogs() > 0) {
+    private suspend fun isUploadAvailable(): Boolean {
+        if (encryptedLogDao.getEncryptedLogsCount(EncryptedLogUploadState.UPLOADING.value) > 0) {
             // We are already uploading another log file
             return false
         }
