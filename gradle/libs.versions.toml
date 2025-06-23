@@ -2,6 +2,7 @@
 agp = "8.10.1"
 androidx-appcompat = "1.7.1"
 androidx-core = "1.16.0"
+androidx-room = "2.7.2"
 androidx-test-espresso = "3.6.1"
 androidx-test-ext = '1.2.1'
 androidx-test-main = "1.6.2"
@@ -11,15 +12,18 @@ jna = "5.17.0@aar"
 junit = "4.13.2"
 kotlin = "2.1.21"
 kotlinx-coroutines = '1.10.2'
+ksp = "2.1.21-2.0.2"
 robolectric = "4.14.1"
 terl-lazysodium-android = "5.1.0@aar"
 turbine = "1.2.1"
 volley = "1.2.1"
-wordpress-wellsql = "2.0.0"
 
 [libraries]
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "androidx-room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "androidx-room" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "androidx-room" }
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidx-test-espresso" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext" }
 androidx-test-main-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test-main" }
@@ -34,11 +38,10 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 terl-lazysodium-android = { module = "com.goterl:lazysodium-android", version.ref = "terl-lazysodium-android" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
-wordpress-wellsql-main = { group = "org.wordpress", name = "wellsql", version.ref = "wordpress-wellsql" }
-wordpress-wellsql-processor = { group = "org.wordpress.wellsql", name = "wellsql-processor", version.ref = "wordpress-wellsql" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "agp" }
+androidx-room = { id = "androidx.room", version.ref = "androidx-room" }
 automattic-publish = { id = "com.automattic.android.publish-to-s3", version.ref = "automattic-publish" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

@@ -1,6 +1,5 @@
 package com.automattic.encryptedlogging.encryptedlog
 
-import com.yarolegovich.wellsql.WellSql
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -29,9 +28,9 @@ class EncryptedLogSqlUtilsTest {
     @Before
     fun setUp() {
         val appContext = RuntimeEnvironment.application.applicationContext
-        val config = TestConfig(appContext)
-        WellSql.init(config)
-        config.reset()
+//        val config = TestConfig(appContext)
+//        WellSql.init(config)
+//        config.reset()
 
         sqlUtils = EncryptedLogSqlUtils()
     }

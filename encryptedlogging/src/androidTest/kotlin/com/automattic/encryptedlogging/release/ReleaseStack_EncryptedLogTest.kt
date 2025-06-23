@@ -8,18 +8,16 @@ import com.android.volley.toolbox.BasicNetwork
 import com.android.volley.toolbox.DiskBasedCache
 import com.android.volley.toolbox.HurlStack
 import com.automattic.encryptedlogging.BuildConfig
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLoggingKey
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
+import com.automattic.encryptedlogging.persistence.EncryptedLogDatabase
 import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
-import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
 import com.automattic.encryptedlogging.store.EncryptedLogStore
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
 import com.automattic.encryptedlogging.store.UploadEncryptedLogError
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
-import com.yarolegovich.wellsql.WellSql
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -58,7 +56,6 @@ internal class ReleaseStack_EncryptedLogTest {
         // Reset the 'uploadState' of 'EncryptedLogStore' so that both tests can run, because it is now a singleton.
         encryptedLogStore.uploadState.value = null
         cleanSharedPreferencesState()
-        WellSql.delete(EncryptedLogModel::class.java).execute()
     }
 
     @Test
@@ -167,6 +164,7 @@ internal class ReleaseStack_EncryptedLogTest {
             start()
         }
         val encryptedLogRestClient = EncryptedLogRestClient(requestQueue, BuildConfig.APP_SECRET)
+        val database = EncryptedLogDatabase.getInstance(context)
         val encryptedLogSqlUtils = EncryptedLogSqlUtils()
 
         val key = EncryptedLoggingKey(
@@ -183,7 +181,6 @@ internal class ReleaseStack_EncryptedLogTest {
             encryptedLogSqlUtils,
             logEncrypter,
             preferenceUtils,
-            EncryptedWellConfig(context)
         )
     }
 }

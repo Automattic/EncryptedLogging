@@ -7,9 +7,7 @@ import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult
 import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
-import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
 import com.automattic.encryptedlogging.utils.PreferenceUtils.PreferenceUtilsWrapper
-import com.yarolegovich.wellsql.WellSql
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
@@ -35,7 +33,6 @@ internal class EncryptedLogStore private constructor(
     private val encryptedLogSqlUtils: EncryptedLogSqlUtils,
     private val logEncrypter: LogEncrypter,
     private val preferenceUtils: PreferenceUtilsWrapper,
-    encryptedWellConfig: EncryptedWellConfig,
 ) {
     companion object {
         private var instance: EncryptedLogStore? = null
@@ -45,7 +42,6 @@ internal class EncryptedLogStore private constructor(
             encryptedLogSqlUtils: EncryptedLogSqlUtils,
             logEncrypter: LogEncrypter,
             preferenceUtils: PreferenceUtilsWrapper,
-            encryptedWellConfig: EncryptedWellConfig,
         ): EncryptedLogStore {
             if (instance == null) {
                 instance = EncryptedLogStore(
@@ -53,7 +49,6 @@ internal class EncryptedLogStore private constructor(
                     encryptedLogSqlUtils,
                     logEncrypter,
                     preferenceUtils,
-                    encryptedWellConfig
                 )
             }
             return checkNotNull(instance) { "EncryptedLogStore instance is null, this should never happen." }
@@ -62,10 +57,6 @@ internal class EncryptedLogStore private constructor(
 
     private val _uploadState = MutableStateFlow<OnEncryptedLogUploaded?>(null)
     internal val uploadState = _uploadState
-
-    init {
-        WellSql.init(encryptedWellConfig)
-    }
 
     /**
      * A method for the client to use to start uploading any encrypted logs that might have been queued.

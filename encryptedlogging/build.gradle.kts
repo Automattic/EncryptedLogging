@@ -2,8 +2,9 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.androidx.room)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.automattic.publish)
 }
 
@@ -27,6 +28,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         consumerProguardFiles.add(File("consumer-rules.pro"))
+    }
+
+    room {
+        schemaDirectory("$projectDir/schemas")
     }
 
     compileOptions {
@@ -61,11 +66,12 @@ fun loadPropertiesFromFile(file: File): Properties {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.volley)
-    implementation(libs.wordpress.wellsql.main)
-    kapt(libs.wordpress.wellsql.processor)
     testImplementation(libs.assertj.core)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
