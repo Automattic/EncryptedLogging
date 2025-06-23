@@ -93,9 +93,12 @@ internal class EncryptedLogStore private constructor(
     }
 
     internal suspend fun resetUploadStates() {
-        val encryptedLogs = encryptedLogDao.getEncryptedLogs(EncryptedLogUploadState.UPLOADING.value)
+        encryptedLogDao.upsertEncryptedLogs(getUploadingEncryptedLogsAndMapToFailed())
+    }
+
+    private suspend fun getUploadingEncryptedLogsAndMapToFailed(): List<EncryptedLogModel> {
+        return encryptedLogDao.getEncryptedLogs(EncryptedLogUploadState.UPLOADING.value)
             .map { it.copy(uploadStateDbValue = EncryptedLogUploadState.FAILED.value) }
-        encryptedLogDao.upsertEncryptedLogs(encryptedLogs)
     }
 
     private suspend fun uploadNextWithDelay(delay: Long) {
