@@ -2,27 +2,23 @@ package com.automattic.encryptedlogging.model.encryptedlogging
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.automattic.encryptedlogging.utils.DateTimeUtils
 import java.io.File
-import java.util.Date
 
 /**
  * [EncryptedLog] and [EncryptedLogModel] are tied to each other, any change in one should be reflected in the other.
  * [EncryptedLog] should be used within the app, [EncryptedLogModel] should be used for DB interactions.
  */
 internal data class EncryptedLog(
+    val id: Int = 0,
     val uuid: String,
     val file: File,
-    val dateCreated: Date = Date(),
     val uploadState: EncryptedLogUploadState = EncryptedLogUploadState.QUEUED,
     val failedCount: Int = 0
 ) {
     companion object {
         fun fromEncryptedLogModel(encryptedLogModel: EncryptedLogModel) =
             EncryptedLog(
-                dateCreated = DateTimeUtils.dateUTCFromIso8601(
-                    encryptedLogModel.dateCreated ?: ""
-                ) ?: Date(),
+                id = encryptedLogModel.id,
                 // Crash if values are missing which shouldn't happen if there are no logic errors
                 uuid = encryptedLogModel.uuid!!,
                 file = File(encryptedLogModel.filePath),
@@ -36,9 +32,12 @@ internal data class EncryptedLog(
     tableName = "EncryptedLogEntity",
 )
 internal data class EncryptedLogModel(
-    @PrimaryKey val uuid: String = "",
+    /**
+     * Synthetic primary key used to effectively order encrypted logs without depending on the date created.
+     */
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val uuid: String? = null,
     val filePath: String? = null,
-    val dateCreated: String? = null, // ISO 8601-formatted date in UTC, e.g. 1955-11-05T14:15:00Z
     val uploadStateDbValue: Int = EncryptedLogUploadState.QUEUED.value,
     val failedCount: Int = 0,
 ) {
@@ -54,11 +53,11 @@ internal data class EncryptedLogModel(
 
     companion object {
         fun fromEncryptedLog(encryptedLog: EncryptedLog) = EncryptedLogModel(
-                uuid = encryptedLog.uuid,
-                filePath = encryptedLog.file.path,
-                dateCreated = DateTimeUtils.iso8601UTCFromDate(encryptedLog.dateCreated),
-                uploadStateDbValue = encryptedLog.uploadState.value,
-                failedCount = encryptedLog.failedCount,
+            id = encryptedLog.id,
+            uuid = encryptedLog.uuid,
+            filePath = encryptedLog.file.path,
+            uploadStateDbValue = encryptedLog.uploadState.value,
+            failedCount = encryptedLog.failedCount,
         )
     }
 }

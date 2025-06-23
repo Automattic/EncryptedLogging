@@ -2,26 +2,26 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "3de55a235daf9bc3ed2525762ecc82bd",
+    "identityHash": "f536d87beb9b4766f20956caac6350d6",
     "entities": [
       {
         "tableName": "EncryptedLogEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` TEXT NOT NULL, `filePath` TEXT, `dateCreated` TEXT, `uploadStateDbValue` INTEGER NOT NULL, `failedCount` INTEGER NOT NULL, PRIMARY KEY(`uuid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuid` TEXT, `filePath` TEXT, `uploadStateDbValue` INTEGER NOT NULL, `failedCount` INTEGER NOT NULL)",
         "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
           {
             "fieldPath": "uuid",
             "columnName": "uuid",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "filePath",
             "columnName": "filePath",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "dateCreated",
-            "columnName": "dateCreated",
             "affinity": "TEXT"
           },
           {
@@ -38,16 +38,16 @@
           }
         ],
         "primaryKey": {
-          "autoGenerate": false,
+          "autoGenerate": true,
           "columnNames": [
-            "uuid"
+            "id"
           ]
         }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3de55a235daf9bc3ed2525762ecc82bd')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f536d87beb9b4766f20956caac6350d6')"
     ]
   }
 }

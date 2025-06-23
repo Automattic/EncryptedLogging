@@ -83,7 +83,7 @@ internal class EncryptedLogStore private constructor(
             uuid = payload.uuid,
             file = payload.file
         )
-        encryptedLogDao.upsertEncryptedLog(encryptedLog)
+        encryptedLogDao.insertEncryptedLog(encryptedLog)
 
         if (payload.shouldStartUploadImmediately) {
             uploadNext()

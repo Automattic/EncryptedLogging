@@ -2,6 +2,7 @@ package com.automattic.encryptedlogging.persistence.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
+import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Upsert
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
@@ -18,7 +19,7 @@ internal abstract class EncryptedLogDao {
     @Query("""
         SELECT * FROM EncryptedLogEntity 
         WHERE uploadStateDbValue IN (:uploadStates) 
-        ORDER BY uploadStateDbValue ASC, dateCreated ASC 
+        ORDER BY uploadStateDbValue ASC, id ASC 
         LIMIT 1
     """)
     internal abstract suspend fun getEncryptedLog(uploadStates: List<Int>): EncryptedLogModel?
@@ -35,6 +36,9 @@ internal abstract class EncryptedLogDao {
     """)
     internal abstract suspend fun getEncryptedLogsCount(uploadState: Int): Int
 
+    @Insert
+    internal abstract suspend fun insertEncryptedLog(encryptedLog: EncryptedLogModel)
+
     @Upsert
     internal abstract suspend fun upsertEncryptedLog(encryptedLog: EncryptedLogModel)
 
@@ -50,6 +54,9 @@ internal abstract class EncryptedLogDao {
     internal abstract suspend fun deleteEncryptedLogs()
 
     /* HELPER FUNCTIONS */
+
+    internal suspend fun insertEncryptedLog(encryptedLog: EncryptedLog) =
+        insertEncryptedLog(EncryptedLogModel.fromEncryptedLog(encryptedLog))
 
     internal suspend fun upsertEncryptedLog(encryptedLog: EncryptedLog) =
         upsertEncryptedLog(EncryptedLogModel.fromEncryptedLog(encryptedLog))
