@@ -19,53 +19,52 @@ internal data class EncryptedLog(
 ) {
     companion object {
         fun fromEncryptedLogModel(encryptedLogModel: EncryptedLogModel) =
-                EncryptedLog(
-                        dateCreated = DateTimeUtils.dateUTCFromIso8601(
-                            encryptedLogModel.dateCreated ?: ""
-                        ) ?: Date(),
-                        // Crash if values are missing which shouldn't happen if there are no logic errors
-                        uuid = encryptedLogModel.uuid!!,
-                        file = File(encryptedLogModel.filePath),
-                        uploadState = encryptedLogModel.uploadState,
-                        failedCount = encryptedLogModel.failedCount
-                )
+            EncryptedLog(
+                dateCreated = DateTimeUtils.dateUTCFromIso8601(
+                    encryptedLogModel.dateCreated ?: ""
+                ) ?: Date(),
+                // Crash if values are missing which shouldn't happen if there are no logic errors
+                uuid = encryptedLogModel.uuid!!,
+                file = File(encryptedLogModel.filePath),
+                uploadState = encryptedLogModel.uploadState,
+                failedCount = encryptedLogModel.failedCount,
+            )
     }
 }
 
 @Entity(
     tableName = "EncryptedLogEntity",
 )
-internal class EncryptedLogModel(@PrimaryKey val id: Int = 0) {
-    var uuid: String? = null
-    var filePath: String? = null
-    var dateCreated: String? = null // ISO 8601-formatted date in UTC, e.g. 1955-11-05T14:15:00Z
-    var uploadStateDbValue: Int = EncryptedLogUploadState.QUEUED.value
-    var failedCount: Int = 0
-
+internal data class EncryptedLogModel(
+    @PrimaryKey val uuid: String = "",
+    val filePath: String? = null,
+    val dateCreated: String? = null, // ISO 8601-formatted date in UTC, e.g. 1955-11-05T14:15:00Z
+    val uploadStateDbValue: Int = EncryptedLogUploadState.QUEUED.value,
+    val failedCount: Int = 0,
+) {
     val uploadState: EncryptedLogUploadState
         get() =
             requireNotNull(
-                    EncryptedLogUploadState.values()
-                            .firstOrNull { it.value == uploadStateDbValue }) {
+                EncryptedLogUploadState.values()
+                    .firstOrNull { it.value == uploadStateDbValue }) {
                 "The stateDbValue of the EncryptedLogUploadState didn't match any of the `EncryptedLogUploadState`s. " +
                         "This likely happened because the EncryptedLogUploadState values " +
                         "were altered without a DB migration."
             }
 
     companion object {
-        fun fromEncryptedLog(encryptedLog: EncryptedLog) = EncryptedLogModel()
-                .also {
-            it.uuid = encryptedLog.uuid
-            it.filePath = encryptedLog.file.path
-            it.dateCreated = DateTimeUtils.iso8601UTCFromDate(encryptedLog.dateCreated)
-            it.uploadStateDbValue = encryptedLog.uploadState.value
-            it.failedCount = encryptedLog.failedCount
-        }
+        fun fromEncryptedLog(encryptedLog: EncryptedLog) = EncryptedLogModel(
+                uuid = encryptedLog.uuid,
+                filePath = encryptedLog.file.path,
+                dateCreated = DateTimeUtils.iso8601UTCFromDate(encryptedLog.dateCreated),
+                uploadStateDbValue = encryptedLog.uploadState.value,
+                failedCount = encryptedLog.failedCount,
+        )
     }
 }
 
 internal enum class EncryptedLogUploadState(val value: Int) {
     QUEUED(1),
     UPLOADING(2),
-    FAILED(3)
+    FAILED(3),
 }
