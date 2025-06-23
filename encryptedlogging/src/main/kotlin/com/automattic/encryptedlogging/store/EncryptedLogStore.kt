@@ -110,13 +110,17 @@ internal class EncryptedLogStore private constructor(
             return
         }
         // We want to upload a single file at a time
+        getEncryptedLogForUpload()?.let {
+            uploadEncryptedLog(EncryptedLog.fromEncryptedLogModel(it))
+        }
+    }
+
+    private suspend fun getEncryptedLogForUpload(): EncryptedLogModel? {
         val uploadStates = listOf(
             EncryptedLogUploadState.QUEUED,
             EncryptedLogUploadState.FAILED
         ).map { it.value }
-        encryptedLogDao.getEncryptedLog(uploadStates)?.let {
-            uploadEncryptedLog(EncryptedLog.fromEncryptedLogModel(it))
-        }
+        return encryptedLogDao.getEncryptedLog(uploadStates)
     }
 
     @Suppress("SwallowedException")
