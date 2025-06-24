@@ -6,7 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Upsert
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogEntity
 
 @Dao
 internal abstract class EncryptedLogDao {
@@ -14,7 +14,7 @@ internal abstract class EncryptedLogDao {
         SELECT * FROM EncryptedLogEntity 
         WHERE uuid = :uuid
     """)
-    internal abstract suspend fun getEncryptedLog(uuid: String): EncryptedLogModel?
+    internal abstract suspend fun getEncryptedLog(uuid: String): EncryptedLogEntity?
 
     @Query("""
         SELECT * FROM EncryptedLogEntity 
@@ -22,13 +22,13 @@ internal abstract class EncryptedLogDao {
         ORDER BY uploadStateDbValue ASC, id ASC 
         LIMIT 1
     """)
-    internal abstract suspend fun getEncryptedLog(uploadStates: List<Int>): EncryptedLogModel?
+    internal abstract suspend fun getEncryptedLog(uploadStates: List<Int>): EncryptedLogEntity?
 
     @Query("""
         SELECT * FROM EncryptedLogEntity 
         WHERE uploadStateDbValue = :uploadState
     """)
-    internal abstract suspend fun getEncryptedLogs(uploadState: Int): List<EncryptedLogModel>
+    internal abstract suspend fun getEncryptedLogs(uploadState: Int): List<EncryptedLogEntity>
 
     @Query("""
         SELECT COUNT(*) FROM EncryptedLogEntity 
@@ -37,16 +37,16 @@ internal abstract class EncryptedLogDao {
     internal abstract suspend fun getEncryptedLogsCount(uploadState: Int): Int
 
     @Insert
-    internal abstract suspend fun insertEncryptedLog(encryptedLog: EncryptedLogModel)
+    internal abstract suspend fun insertEncryptedLog(encryptedLog: EncryptedLogEntity)
 
     @Upsert
-    internal abstract suspend fun upsertEncryptedLog(encryptedLog: EncryptedLogModel)
+    internal abstract suspend fun upsertEncryptedLog(encryptedLog: EncryptedLogEntity)
 
     @Upsert
-    internal abstract suspend fun upsertEncryptedLogs(encryptedLogs: List<EncryptedLogModel>)
+    internal abstract suspend fun upsertEncryptedLogs(encryptedLogs: List<EncryptedLogEntity>)
 
     @Delete
-    internal abstract suspend fun deleteEncryptedLog(encryptedLog: EncryptedLogModel)
+    internal abstract suspend fun deleteEncryptedLog(encryptedLog: EncryptedLogEntity)
 
     @Query("""
         DELETE FROM EncryptedLogEntity
@@ -56,11 +56,11 @@ internal abstract class EncryptedLogDao {
     /* HELPER FUNCTIONS */
 
     internal suspend fun insertEncryptedLog(encryptedLog: EncryptedLog) =
-        insertEncryptedLog(EncryptedLogModel.fromEncryptedLog(encryptedLog))
+        insertEncryptedLog(EncryptedLogEntity.fromEncryptedLog(encryptedLog))
 
     internal suspend fun upsertEncryptedLog(encryptedLog: EncryptedLog) =
-        upsertEncryptedLog(EncryptedLogModel.fromEncryptedLog(encryptedLog))
+        upsertEncryptedLog(EncryptedLogEntity.fromEncryptedLog(encryptedLog))
 
     internal suspend fun deleteEncryptedLog(encryptedLog: EncryptedLog) =
-        deleteEncryptedLog(EncryptedLogModel.fromEncryptedLog(encryptedLog))
+        deleteEncryptedLog(EncryptedLogEntity.fromEncryptedLog(encryptedLog))
 }

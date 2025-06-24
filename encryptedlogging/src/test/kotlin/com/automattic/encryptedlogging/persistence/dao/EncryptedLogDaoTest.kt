@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogEntity
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState
 import com.automattic.encryptedlogging.persistence.EncryptedLogDatabase
 import kotlinx.coroutines.test.runTest
@@ -47,7 +47,7 @@ class EncryptedLogDaoTest {
         assertThat(sut.getEncryptedLog(TEST_UUID)).isNull()
 
         // Insert an encrypted log with uuid
-        val logToBeInserted = createTestEncryptedLogModel()
+        val logToBeInserted = createTestEncryptedLogEntity()
         sut.insertEncryptedLog(logToBeInserted)
 
         // Assert that the encrypted log from the DB is the same as the one we inserted (ignoring id)
@@ -64,7 +64,7 @@ class EncryptedLogDaoTest {
 
         // Insert an encrypted log with uuid
         val uuidList = (1..5).map { "uuid-prefix-$it" }
-        val logsToBeInserted = uuidList.map { createTestEncryptedLogModel(uuid = it) }
+        val logsToBeInserted = uuidList.map { createTestEncryptedLogEntity(uuid = it) }
         sut.upsertEncryptedLogs(logsToBeInserted)
 
         // Assert that the encrypted logs from the DB is the same as the ones we inserted (ignoring id)
@@ -80,7 +80,7 @@ class EncryptedLogDaoTest {
     @Test
     fun `test update encrypted log`() = runTest {
         // Insert an initial encrypted log
-        val initialLog = createTestEncryptedLogModel()
+        val initialLog = createTestEncryptedLogEntity()
         sut.insertEncryptedLog(initialLog)
         assertThat(sut.getEncryptedLog(TEST_UUID))
             .usingRecursiveComparison()
@@ -106,7 +106,7 @@ class EncryptedLogDaoTest {
     @Test
     fun `test delete encrypted log`() = runTest {
         // Insert an initial encrypted log
-        val initialLog = createTestEncryptedLogModel()
+        val initialLog = createTestEncryptedLogEntity()
         sut.insertEncryptedLog(initialLog)
         assertThat(sut.getEncryptedLog(TEST_UUID))
             .usingRecursiveComparison()
@@ -127,7 +127,7 @@ class EncryptedLogDaoTest {
     @Test
     fun `test get uploading encrypted logs`() = runTest {
         // Insert an encrypted log with uuid
-        val logToBeInserted = createTestEncryptedLogModel(uploadState = EncryptedLogUploadState.UPLOADING)
+        val logToBeInserted = createTestEncryptedLogEntity(uploadState = EncryptedLogUploadState.UPLOADING)
         sut.insertEncryptedLog(logToBeInserted)
 
         // Assert that the encrypted log from the DB is the same as the one we inserted (ignoring id)
@@ -151,7 +151,7 @@ class EncryptedLogDaoTest {
         Random.nextInt(100).let { numberOfLogs ->
             repeat(numberOfLogs) {
                 sut.insertEncryptedLog(
-                    createTestEncryptedLogModel(
+                    createTestEncryptedLogEntity(
                         uuid = UUID.randomUUID().toString(),
                         uploadState = EncryptedLogUploadState.UPLOADING
                     )
@@ -164,7 +164,7 @@ class EncryptedLogDaoTest {
 
     @Test
     fun `test get encrypted logs for upload includes QUEUED logs`() = runTest {
-        sut.insertEncryptedLog(createTestEncryptedLogModel(uploadState = EncryptedLogUploadState.QUEUED))
+        sut.insertEncryptedLog(createTestEncryptedLogEntity(uploadState = EncryptedLogUploadState.QUEUED))
 
         val uploadStates = listOf(
             EncryptedLogUploadState.QUEUED,
@@ -175,7 +175,7 @@ class EncryptedLogDaoTest {
 
     @Test
     fun `test get encrypted logs for upload includes FAILED logs`() = runTest {
-        sut.insertEncryptedLog(createTestEncryptedLogModel(uploadState = EncryptedLogUploadState.FAILED))
+        sut.insertEncryptedLog(createTestEncryptedLogEntity(uploadState = EncryptedLogUploadState.FAILED))
 
         val uploadStates = listOf(
             EncryptedLogUploadState.QUEUED,
@@ -186,7 +186,7 @@ class EncryptedLogDaoTest {
 
     @Test
     fun `test get encrypted logs for upload does not include UPLOADING logs`() = runTest {
-        sut.insertEncryptedLog(createTestEncryptedLogModel(uploadState = EncryptedLogUploadState.UPLOADING))
+        sut.insertEncryptedLog(createTestEncryptedLogEntity(uploadState = EncryptedLogUploadState.UPLOADING))
 
         val uploadStates = listOf(
             EncryptedLogUploadState.QUEUED,
@@ -197,8 +197,8 @@ class EncryptedLogDaoTest {
 
     @Test
     fun `test get encrypted logs for upload is in correct order`() = runTest {
-        sut.insertEncryptedLog(createTestEncryptedLogModel(uploadState = EncryptedLogUploadState.FAILED))
-        sut.insertEncryptedLog(createTestEncryptedLogModel(uploadState = EncryptedLogUploadState.QUEUED))
+        sut.insertEncryptedLog(createTestEncryptedLogEntity(uploadState = EncryptedLogUploadState.FAILED))
+        sut.insertEncryptedLog(createTestEncryptedLogEntity(uploadState = EncryptedLogUploadState.QUEUED))
 
         // Queued logs should be uploaded before the failed ones
         val uploadStates = listOf(
@@ -222,11 +222,11 @@ class EncryptedLogDaoTest {
         uploadState = uploadState
     )
 
-    private fun createTestEncryptedLogModel(
+    private fun createTestEncryptedLogEntity(
         uuid: String = TEST_UUID,
         filePath: String = TEST_FILE_PATH,
         uploadState: EncryptedLogUploadState = EncryptedLogUploadState.QUEUED
-    ) = EncryptedLogModel.fromEncryptedLog(
+    ) = EncryptedLogEntity.fromEncryptedLog(
         createTestEncryptedLog(
             uuid = uuid,
             filePath = filePath,

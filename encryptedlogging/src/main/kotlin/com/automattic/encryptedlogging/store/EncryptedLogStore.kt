@@ -2,7 +2,7 @@ package com.automattic.encryptedlogging.store
 
 import androidx.core.content.edit
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogEntity
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogUploadState
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
@@ -94,7 +94,7 @@ internal class EncryptedLogStore private constructor(
         encryptedLogDao.upsertEncryptedLogs(getUploadingEncryptedLogsAndMapToFailed())
     }
 
-    private suspend fun getUploadingEncryptedLogsAndMapToFailed(): List<EncryptedLogModel> {
+    private suspend fun getUploadingEncryptedLogsAndMapToFailed(): List<EncryptedLogEntity> {
         return encryptedLogDao.getEncryptedLogs(EncryptedLogUploadState.UPLOADING.value)
             .map { it.copy(uploadStateDbValue = EncryptedLogUploadState.FAILED.value) }
     }
@@ -112,11 +112,11 @@ internal class EncryptedLogStore private constructor(
         }
         // We want to upload a single file at a time
         getEncryptedLogForUpload()?.let {
-            uploadEncryptedLog(EncryptedLog.fromEncryptedLogModel(it))
+            uploadEncryptedLog(EncryptedLog.fromEncryptedLogEntity(it))
         }
     }
 
-    private suspend fun getEncryptedLogForUpload(): EncryptedLogModel? {
+    private suspend fun getEncryptedLogForUpload(): EncryptedLogEntity? {
         val uploadStates = listOf(
             EncryptedLogUploadState.QUEUED,
             EncryptedLogUploadState.FAILED

@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
+import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogEntity
 import com.automattic.encryptedlogging.persistence.dao.EncryptedLogDao
 
 private const val DATABASE_VERSION = 1
@@ -13,7 +13,7 @@ private const val DATABASE_NAME = "encrypted-log.db"
 @Database(
     version = DATABASE_VERSION,
     entities = [
-        EncryptedLogModel::class,
+        EncryptedLogEntity::class,
     ],
 )
 internal abstract class EncryptedLogDatabase : RoomDatabase() {

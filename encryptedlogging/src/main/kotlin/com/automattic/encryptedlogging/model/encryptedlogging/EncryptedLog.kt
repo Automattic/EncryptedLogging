@@ -5,8 +5,8 @@ import androidx.room.PrimaryKey
 import java.io.File
 
 /**
- * [EncryptedLog] and [EncryptedLogModel] are tied to each other, any change in one should be reflected in the other.
- * [EncryptedLog] should be used within the app, [EncryptedLogModel] should be used for DB interactions.
+ * [EncryptedLog] and [EncryptedLogEntity] are tied to each other, any change in one should be reflected in the other.
+ * [EncryptedLog] should be used within the app, [EncryptedLogEntity] should be used for DB interactions.
  */
 internal data class EncryptedLog(
     val id: Int = 0,
@@ -16,14 +16,14 @@ internal data class EncryptedLog(
     val failedCount: Int = 0
 ) {
     companion object {
-        fun fromEncryptedLogModel(encryptedLogModel: EncryptedLogModel) =
+        fun fromEncryptedLogEntity(encryptedLogEntity: EncryptedLogEntity) =
             EncryptedLog(
-                id = encryptedLogModel.id,
+                id = encryptedLogEntity.id,
                 // Crash if values are missing which shouldn't happen if there are no logic errors
-                uuid = encryptedLogModel.uuid!!,
-                file = File(encryptedLogModel.filePath),
-                uploadState = encryptedLogModel.uploadState,
-                failedCount = encryptedLogModel.failedCount,
+                uuid = encryptedLogEntity.uuid!!,
+                file = File(encryptedLogEntity.filePath),
+                uploadState = encryptedLogEntity.uploadState,
+                failedCount = encryptedLogEntity.failedCount,
             )
     }
 }
@@ -31,7 +31,7 @@ internal data class EncryptedLog(
 @Entity(
     tableName = "EncryptedLogEntity",
 )
-internal data class EncryptedLogModel(
+internal data class EncryptedLogEntity(
     /**
      * Synthetic primary key used to effectively order encrypted logs without depending on the date created.
      */
@@ -51,8 +51,8 @@ internal data class EncryptedLogModel(
                         "were altered without a DB migration."
             }
 
-    companion object {
-        fun fromEncryptedLog(encryptedLog: EncryptedLog) = EncryptedLogModel(
+    companion object Companion {
+        fun fromEncryptedLog(encryptedLog: EncryptedLog) = EncryptedLogEntity(
             id = encryptedLog.id,
             uuid = encryptedLog.uuid,
             filePath = encryptedLog.file.path,
