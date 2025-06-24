@@ -12,12 +12,6 @@ import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogEntity
 internal abstract class EncryptedLogDao {
     @Query("""
         SELECT * FROM EncryptedLogEntity 
-        WHERE uuid = :uuid
-    """)
-    internal abstract suspend fun getEncryptedLog(uuid: String): EncryptedLogEntity?
-
-    @Query("""
-        SELECT * FROM EncryptedLogEntity 
         WHERE uploadStateDbValue IN (:uploadStates) 
         ORDER BY uploadStateDbValue ASC, id ASC 
         LIMIT 1

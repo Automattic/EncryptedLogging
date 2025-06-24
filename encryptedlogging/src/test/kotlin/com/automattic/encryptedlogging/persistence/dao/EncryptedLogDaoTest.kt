@@ -43,15 +43,13 @@ class EncryptedLogDaoTest {
 
     @Test
     fun `test insert encrypted log`() = runTest {
-        // Assert that there are no encrypted logs with the test uuid
-        assertThat(sut.getEncryptedLog(TEST_UUID)).isNull()
+        val uploadState = EncryptedLogUploadState.QUEUED
+        val logToBeInserted = createTestEncryptedLogEntity(uploadState = uploadState)
 
-        // Insert an encrypted log with uuid
-        val logToBeInserted = createTestEncryptedLogEntity()
         sut.insertEncryptedLog(logToBeInserted)
 
         // Assert that the encrypted log from the DB is the same as the one we inserted (ignoring id)
-        assertThat(sut.getEncryptedLog(TEST_UUID))
+        assertThat(sut.getEncryptedLog(listOf(uploadState.value)))
             .usingRecursiveComparison()
             .ignoringFields("id")
             .isEqualTo(logToBeInserted)
@@ -59,36 +57,36 @@ class EncryptedLogDaoTest {
 
     @Test
     fun `test insert multiple encrypted logs`() = runTest {
-        // Assert that there are no encrypted logs with the test uuid
-        assertThat(sut.getEncryptedLog(TEST_UUID)).isNull()
-
-        // Insert an encrypted log with uuid
         val uuidList = (1..5).map { "uuid-prefix-$it" }
-        val logsToBeInserted = uuidList.map { createTestEncryptedLogEntity(uuid = it) }
+        val uploadState = EncryptedLogUploadState.QUEUED
+        val logsToBeInserted = uuidList.map { createTestEncryptedLogEntity(uuid = it, uploadState = uploadState) }
+
         sut.upsertEncryptedLogs(logsToBeInserted)
 
         // Assert that the encrypted logs from the DB is the same as the ones we inserted (ignoring id)
         uuidList.forEachIndexed { index, uuid ->
-            val log = sut.getEncryptedLog(uuid)
+            val log = sut.getEncryptedLog(listOf(uploadState.value))
             assertThat(log)
                 .usingRecursiveComparison()
                 .ignoringFields("id")
                 .isEqualTo(logsToBeInserted[index])
+            sut.deleteEncryptedLog(log!!) // So that the next encrypted log can be fetched correctly
         }
     }
 
     @Test
     fun `test update encrypted log`() = runTest {
         // Insert an initial encrypted log
-        val initialLog = createTestEncryptedLogEntity()
+        val uploadState = EncryptedLogUploadState.QUEUED
+        val initialLog = createTestEncryptedLogEntity(uploadState = uploadState)
         sut.insertEncryptedLog(initialLog)
-        assertThat(sut.getEncryptedLog(TEST_UUID))
+        assertThat(sut.getEncryptedLog(listOf(uploadState.value)))
             .usingRecursiveComparison()
             .ignoringFields("id")
             .isEqualTo(initialLog)
 
         // Get the encrypted log from the database (to get the correct id)
-        val initialLogFromDb = sut.getEncryptedLog(TEST_UUID)
+        val initialLogFromDb = sut.getEncryptedLog(listOf(uploadState.value))
         assertThat(initialLogFromDb).isNotNull
 
         // Create a copy of the encrypted log by changing its upload state (which will be the common usage)
@@ -97,7 +95,7 @@ class EncryptedLogDaoTest {
         updatedLog?.let { sut.upsertEncryptedLog(updatedLog) }
 
         // Assert that the encrypted log in the DB is the one with the correct upload state
-        val updatedLogFromDB = sut.getEncryptedLog(TEST_UUID)
+        val updatedLogFromDB = sut.getEncryptedLog(listOf(newUploadState.value))
         assertThat(requireNotNull(updatedLogFromDB?.uploadState)).isEqualTo(newUploadState)
         // This verifies the expected state as well but separating the initial assertion is valuable to show intent
         assertThat(updatedLogFromDB).isEqualTo(updatedLog)
@@ -106,22 +104,23 @@ class EncryptedLogDaoTest {
     @Test
     fun `test delete encrypted log`() = runTest {
         // Insert an initial encrypted log
+        val uploadState = EncryptedLogUploadState.QUEUED
         val initialLog = createTestEncryptedLogEntity()
         sut.insertEncryptedLog(initialLog)
-        assertThat(sut.getEncryptedLog(TEST_UUID))
+        assertThat(sut.getEncryptedLog(listOf(uploadState.value)))
             .usingRecursiveComparison()
             .ignoringFields("id")
             .isEqualTo(initialLog)
 
         // Get the encrypted log from the database (to get the correct id)
-        val initialLogFromDb = sut.getEncryptedLog(TEST_UUID)
+        val initialLogFromDb = sut.getEncryptedLog(listOf(uploadState.value))
         assertThat(initialLogFromDb).isNotNull
 
         // Delete the encrypted log
         initialLogFromDb?.let { sut.deleteEncryptedLog(it) }
 
         // Assert that the encrypted log no longer exists
-        assertThat(sut.getEncryptedLog(TEST_UUID)).isNull()
+        assertThat(sut.getEncryptedLog(listOf(uploadState.value))).isNull()
     }
 
     @Test
