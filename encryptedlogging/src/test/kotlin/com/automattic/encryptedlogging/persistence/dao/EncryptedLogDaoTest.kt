@@ -96,8 +96,6 @@ class EncryptedLogDaoTest {
 
         // Assert that the encrypted log in the DB is the one with the correct upload state
         val updatedLogFromDB = sut.getEncryptedLog(listOf(newUploadState.value))
-        assertThat(requireNotNull(updatedLogFromDB?.uploadState)).isEqualTo(newUploadState)
-        // This verifies the expected state as well but separating the initial assertion is valuable to show intent
         assertThat(updatedLogFromDB).isEqualTo(updatedLog)
     }
 
