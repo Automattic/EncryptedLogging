@@ -5,7 +5,6 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Upsert
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogEntity
 
 @Dao
@@ -46,15 +45,4 @@ internal abstract class EncryptedLogDao {
         DELETE FROM EncryptedLogEntity
     """)
     internal abstract suspend fun deleteEncryptedLogs()
-
-    /* HELPER FUNCTIONS */
-
-    internal suspend fun insertEncryptedLog(encryptedLog: EncryptedLog) =
-        insertEncryptedLog(EncryptedLogEntity.fromEncryptedLog(encryptedLog))
-
-    internal suspend fun upsertEncryptedLog(encryptedLog: EncryptedLog) =
-        upsertEncryptedLog(EncryptedLogEntity.fromEncryptedLog(encryptedLog))
-
-    internal suspend fun deleteEncryptedLog(encryptedLog: EncryptedLog) =
-        deleteEncryptedLog(EncryptedLogEntity.fromEncryptedLog(encryptedLog))
 }

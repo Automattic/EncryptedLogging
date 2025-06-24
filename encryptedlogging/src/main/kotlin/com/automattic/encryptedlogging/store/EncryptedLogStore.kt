@@ -83,7 +83,7 @@ internal class EncryptedLogStore private constructor(
             uuid = payload.uuid,
             file = payload.file
         )
-        encryptedLogDao.insertEncryptedLog(encryptedLog)
+        encryptedLogDao.insertEncryptedLog(EncryptedLogEntity.fromEncryptedLog(encryptedLog))
 
         if (payload.shouldStartUploadImmediately) {
             uploadNext()
@@ -137,7 +137,7 @@ internal class EncryptedLogStore private constructor(
 
             // Update the upload state of the log
             encryptedLog.copy(uploadState = EncryptedLogUploadState.UPLOADING).let {
-                encryptedLogDao.upsertEncryptedLog(it)
+                encryptedLogDao.upsertEncryptedLog(EncryptedLogEntity.fromEncryptedLog(it))
             }
 
             when (val result = encryptedLogRestClient.uploadLog(encryptedLog.uuid, encryptedText)) {
@@ -180,9 +180,11 @@ internal class EncryptedLogStore private constructor(
             deleteEncryptedLog(encryptedLog)
         } else {
             encryptedLogDao.upsertEncryptedLog(
-                encryptedLog.copy(
-                    uploadState = EncryptedLogUploadState.FAILED,
-                    failedCount = finalFailureCount
+                EncryptedLogEntity.fromEncryptedLog(
+                    encryptedLog.copy(
+                        uploadState = EncryptedLogUploadState.FAILED,
+                        failedCount = finalFailureCount
+                    )
                 )
             )
         }
@@ -243,7 +245,7 @@ internal class EncryptedLogStore private constructor(
     }
 
     private suspend fun deleteEncryptedLog(encryptedLog: EncryptedLog) {
-        encryptedLogDao.deleteEncryptedLog(encryptedLog)
+        encryptedLogDao.deleteEncryptedLog(EncryptedLogEntity.fromEncryptedLog(encryptedLog))
     }
 
     private fun isValidFile(file: File): Boolean = file.exists() && file.canRead()
