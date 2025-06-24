@@ -145,18 +145,17 @@ class EncryptedLogDaoTest {
 
     @Test
     fun `test uploading encrypted logs for random number`() = runTest {
-        Random.nextInt(100).let { numberOfLogs ->
-            repeat(numberOfLogs) {
-                sut.insertEncryptedLog(
-                    createTestEncryptedLogEntity(
-                        uuid = UUID.randomUUID().toString(),
-                        uploadState = EncryptedLogUploadState.UPLOADING
-                    )
+        val numberOfLogs = 10
+        repeat(numberOfLogs) {
+            sut.insertEncryptedLog(
+                createTestEncryptedLogEntity(
+                    uuid = UUID.randomUUID().toString(),
+                    uploadState = EncryptedLogUploadState.UPLOADING
                 )
-            }
-            assertThat(sut.getEncryptedLogsCount(EncryptedLogUploadState.UPLOADING.value))
-                .isEqualTo(numberOfLogs.toLong())
+            )
         }
+        assertThat(sut.getEncryptedLogsCount(EncryptedLogUploadState.UPLOADING.value))
+            .isEqualTo(numberOfLogs.toLong())
     }
 
     @Test
