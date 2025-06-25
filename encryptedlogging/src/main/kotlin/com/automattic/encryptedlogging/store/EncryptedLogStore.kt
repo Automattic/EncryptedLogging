@@ -95,8 +95,8 @@ internal class EncryptedLogStore private constructor(
     }
 
     private suspend fun getUploadingEncryptedLogsAndMapToFailed(): List<EncryptedLogEntity> {
-        return encryptedLogDao.getEncryptedLogs(EncryptedLogUploadState.UPLOADING.value)
-            .map { it.copy(uploadStateDbValue = EncryptedLogUploadState.FAILED.value) }
+        return encryptedLogDao.getEncryptedLogs(EncryptedLogUploadState.UPLOADING)
+            .map { it.copy(uploadState = EncryptedLogUploadState.FAILED) }
     }
 
     private suspend fun uploadNextWithDelay(delay: Long) {
@@ -117,11 +117,10 @@ internal class EncryptedLogStore private constructor(
     }
 
     private suspend fun getEncryptedLogForUpload(): EncryptedLogEntity? {
-        val uploadStates = listOf(
+        return encryptedLogDao.getEncryptedLog(
             EncryptedLogUploadState.QUEUED,
             EncryptedLogUploadState.FAILED
-        ).map { it.value }
-        return encryptedLogDao.getEncryptedLog(uploadStates)
+        )
     }
 
     @Suppress("SwallowedException")
@@ -257,7 +256,7 @@ internal class EncryptedLogStore private constructor(
      * encrypted log uploads will not be available.
      */
     private suspend fun isUploadAvailable(): Boolean {
-        if (encryptedLogDao.getEncryptedLogsCount(EncryptedLogUploadState.UPLOADING.value) > 0) {
+        if (encryptedLogDao.getEncryptedLogsCount(EncryptedLogUploadState.UPLOADING) > 0) {
             // We are already uploading another log file
             return false
         }

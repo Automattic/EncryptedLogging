@@ -38,25 +38,16 @@ internal data class EncryptedLogEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val uuid: String? = null,
     val filePath: String? = null,
-    val uploadStateDbValue: Int = EncryptedLogUploadState.QUEUED.value,
+    val uploadState: EncryptedLogUploadState = EncryptedLogUploadState.QUEUED,
     val failedCount: Int = 0,
 ) {
-    val uploadState: EncryptedLogUploadState
-        get() =
-            requireNotNull(
-                EncryptedLogUploadState.values()
-                    .firstOrNull { it.value == uploadStateDbValue }) {
-                "The stateDbValue of the EncryptedLogUploadState didn't match any of the `EncryptedLogUploadState`s. " +
-                        "This likely happened because the EncryptedLogUploadState values " +
-                        "were altered without a DB migration."
-            }
 
     companion object Companion {
         fun fromEncryptedLog(encryptedLog: EncryptedLog) = EncryptedLogEntity(
             id = encryptedLog.id,
             uuid = encryptedLog.uuid,
             filePath = encryptedLog.file.path,
-            uploadStateDbValue = encryptedLog.uploadState.value,
+            uploadState = encryptedLog.uploadState,
             failedCount = encryptedLog.failedCount,
         )
     }

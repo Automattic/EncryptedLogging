@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogEntity
 import com.automattic.encryptedlogging.persistence.dao.EncryptedLogDao
+import com.automattic.encryptedlogging.persistence.typeconverter.UploadStateTypeConverter
 
 private const val DATABASE_VERSION = 1
 private const val DATABASE_NAME = "encrypted-log.db"
@@ -15,6 +17,11 @@ private const val DATABASE_NAME = "encrypted-log.db"
     entities = [
         EncryptedLogEntity::class,
     ],
+)
+@TypeConverters(
+    value = [
+        UploadStateTypeConverter::class
+    ]
 )
 internal abstract class EncryptedLogDatabase : RoomDatabase() {
     internal abstract val encryptedLogDao: EncryptedLogDao
