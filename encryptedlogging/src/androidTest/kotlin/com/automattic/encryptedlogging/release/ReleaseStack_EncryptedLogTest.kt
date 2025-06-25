@@ -8,25 +8,15 @@ import com.android.volley.toolbox.BasicNetwork
 import com.android.volley.toolbox.DiskBasedCache
 import com.android.volley.toolbox.HurlStack
 import com.automattic.encryptedlogging.BuildConfig
-import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogModel
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLoggingKey
 import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
-import com.automattic.encryptedlogging.persistence.EncryptedLogSqlUtils
-import com.automattic.encryptedlogging.persistence.EncryptedWellConfig
-import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.TestEvents.ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY
-import com.automattic.encryptedlogging.release.ReleaseStack_EncryptedLogTest.TestEvents.ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
-import com.automattic.encryptedlogging.store.ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE
+import com.automattic.encryptedlogging.persistence.EncryptedLogDatabase
 import com.automattic.encryptedlogging.store.EncryptedLogStore
-import com.automattic.encryptedlogging.store.EncryptedLogStore.UploadEncryptedLogPayload
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
-import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded.EncryptedLogFailedToUpload
-import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully
-import com.automattic.encryptedlogging.store.UploadEncryptedLogError.InvalidRequest
-import com.automattic.encryptedlogging.store.UploadEncryptedLogError.TooManyRequests
+import com.automattic.encryptedlogging.store.UploadEncryptedLogError
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
-import com.yarolegovich.wellsql.WellSql
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -43,6 +33,7 @@ private const val INVALID_UUID = "INVALID_UUID" // Underscore is not allowed
 internal class ReleaseStack_EncryptedLogTest {
 
     val context = InstrumentationRegistry.getInstrumentation().context
+    val database = EncryptedLogDatabase.getInstance(context)
     val preferenceUtils = PreferenceUtils.PreferenceUtilsWrapper(context)
     lateinit var encryptedLogStore: EncryptedLogStore
 
@@ -61,23 +52,23 @@ internal class ReleaseStack_EncryptedLogTest {
     }
 
     @After
-    fun tearDown() {
+    fun tearDown() = runTest {
         // Reset the 'uploadState' of 'EncryptedLogStore' so that both tests can run, because it is now a singleton.
         encryptedLogStore.uploadState.value = null
         cleanSharedPreferencesState()
-        WellSql.delete(EncryptedLogModel::class.java).execute()
+        database.encryptedLogDao.deleteEncryptedLogs()
     }
 
     @Test
     fun testQueueForUpload() = runTest {
         // GIVEN
-        nextEvent = ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY
+        nextEvent = TestEvents.ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY
         val testIds = testIds()
 
         encryptedLogStore.uploadState.test {
             // WHEN
             testIds.forEach { uuid ->
-                val payload = UploadEncryptedLogPayload(
+                val payload = EncryptedLogStore.UploadEncryptedLogPayload(
                     uuid = uuid,
                     file = createTempFileWithContent(
                         suffix = uuid,
@@ -100,11 +91,11 @@ internal class ReleaseStack_EncryptedLogTest {
     @Test
     fun testQueueForUploadForInvalidUuid() = runTest {
         // GIVEN
-        nextEvent = ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
+        nextEvent = TestEvents.ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID
 
         encryptedLogStore.uploadState.test {
             // WHEN
-            val payload = UploadEncryptedLogPayload(
+            val payload = EncryptedLogStore.UploadEncryptedLogPayload(
                 uuid = INVALID_UUID,
                 file = File.createTempFile("test", INVALID_UUID),
                 shouldStartUploadImmediately = true
@@ -122,20 +113,20 @@ internal class ReleaseStack_EncryptedLogTest {
 
     private fun onEncryptedLogUploaded(event: OnEncryptedLogUploaded) {
         when (event) {
-            is EncryptedLogUploadedSuccessfully -> {
-                assertThat(nextEvent).isEqualTo(ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY)
+            is OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully -> {
+                assertThat(nextEvent).isEqualTo(TestEvents.ENCRYPTED_LOG_UPLOADED_SUCCESSFULLY)
                 assertThat(testIds()).contains(event.uuid)
             }
 
-            is EncryptedLogFailedToUpload -> {
+            is OnEncryptedLogUploaded.EncryptedLogFailedToUpload -> {
                 when (event.error) {
-                    is TooManyRequests -> {
+                    is UploadEncryptedLogError.TooManyRequests -> {
                         // If we are hitting too many requests, we just ignore the test as restarting it will not help
                         assertThat(event.willRetry).isEqualTo(true)
                     }
 
-                    is InvalidRequest -> {
-                        assertThat(nextEvent).isEqualTo(ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID)
+                    is UploadEncryptedLogError.InvalidRequest -> {
+                        assertThat(nextEvent).isEqualTo(TestEvents.ENCRYPTED_LOG_UPLOAD_FAILED_WITH_INVALID_UUID)
                         assertThat(event.willRetry).isEqualTo(false)
                     }
 
@@ -159,7 +150,7 @@ internal class ReleaseStack_EncryptedLogTest {
 
     private fun cleanSharedPreferencesState() {
         preferenceUtils.getPreferences().edit().putLong(
-            ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE,
+            com.automattic.encryptedlogging.store.ENCRYPTED_LOG_UPLOAD_UNAVAILABLE_UNTIL_DATE,
             -1
         ).commit()
     }
@@ -174,7 +165,6 @@ internal class ReleaseStack_EncryptedLogTest {
             start()
         }
         val encryptedLogRestClient = EncryptedLogRestClient(requestQueue, BuildConfig.APP_SECRET)
-        val encryptedLogSqlUtils = EncryptedLogSqlUtils()
 
         val key = EncryptedLoggingKey(
             Key.fromBytes(
@@ -187,10 +177,9 @@ internal class ReleaseStack_EncryptedLogTest {
         val logEncrypter = LogEncrypter(key)
         return EncryptedLogStore.getInstance(
             encryptedLogRestClient,
-            encryptedLogSqlUtils,
+            database.encryptedLogDao,
             logEncrypter,
             preferenceUtils,
-            EncryptedWellConfig(context)
         )
     }
 }
