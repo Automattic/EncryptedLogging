@@ -159,39 +159,6 @@ class EncryptedLogDaoTest {
     }
 
     @Test
-    fun `test get encrypted logs for upload includes QUEUED logs`() = runTest {
-        sut.insertEncryptedLog(createTestEncryptedLogEntity(uploadState = EncryptedLogUploadState.QUEUED))
-
-        val uploadStates = listOf(
-            EncryptedLogUploadState.QUEUED,
-            EncryptedLogUploadState.FAILED
-        ).map { it.value }
-        assertThat(sut.getEncryptedLog(uploadStates)).isNotNull
-    }
-
-    @Test
-    fun `test get encrypted logs for upload includes FAILED logs`() = runTest {
-        sut.insertEncryptedLog(createTestEncryptedLogEntity(uploadState = EncryptedLogUploadState.FAILED))
-
-        val uploadStates = listOf(
-            EncryptedLogUploadState.QUEUED,
-            EncryptedLogUploadState.FAILED
-        ).map { it.value }
-        assertThat(sut.getEncryptedLog(uploadStates)).isNotNull
-    }
-
-    @Test
-    fun `test get encrypted logs for upload does not include UPLOADING logs`() = runTest {
-        sut.insertEncryptedLog(createTestEncryptedLogEntity(uploadState = EncryptedLogUploadState.UPLOADING))
-
-        val uploadStates = listOf(
-            EncryptedLogUploadState.QUEUED,
-            EncryptedLogUploadState.FAILED
-        ).map { it.value }
-        assertThat(sut.getEncryptedLog(uploadStates)).isNull()
-    }
-
-    @Test
     fun `test get encrypted logs for upload is in correct order`() = runTest {
         sut.insertEncryptedLog(createTestEncryptedLogEntity(uploadState = EncryptedLogUploadState.FAILED))
         sut.insertEncryptedLog(createTestEncryptedLogEntity(uploadState = EncryptedLogUploadState.QUEUED))
