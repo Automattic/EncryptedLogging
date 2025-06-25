@@ -11,10 +11,8 @@ import com.automattic.encryptedlogging.model.encryptedlogging.LogEncrypter
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.EncryptedLogRestClient
 import com.automattic.encryptedlogging.persistence.EncryptedLogDatabase
 import com.automattic.encryptedlogging.store.EncryptedLogStore
-import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -79,9 +77,5 @@ public class AutomatticEncryptedLogging(
         sdkScope.launch {
             encryptedLogStore.resetUploadStates()
         }
-    }
-
-    override fun observeEncryptedLogsUploadResult(): StateFlow<OnEncryptedLogUploaded?> {
-        return encryptedLogStore.uploadState
     }
 }

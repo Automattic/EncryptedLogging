@@ -1,5 +1,6 @@
 package com.automattic.encryptedlogging.store
 
+import android.util.Log
 import androidx.core.content.edit
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLog
 import com.automattic.encryptedlogging.model.encryptedlogging.EncryptedLogEntity
@@ -36,6 +37,7 @@ internal class EncryptedLogStore private constructor(
     private val preferenceUtils: PreferenceUtilsWrapper,
 ) {
     companion object {
+        private val TAG = EncryptedLogStore::class.java.simpleName
         private var instance: EncryptedLogStore? = null
 
         fun getInstance(
@@ -71,13 +73,14 @@ internal class EncryptedLogStore private constructor(
     internal suspend fun queueLogForUpload(payload: UploadEncryptedLogPayload) {
         // If the log file is not valid, there is nothing we can do
         if (!isValidFile(payload.file)) {
-            _uploadState.value = OnEncryptedLogUploaded.EncryptedLogFailedToUpload(
+            val uploadState = OnEncryptedLogUploaded.EncryptedLogFailedToUpload(
                 uuid = payload.uuid,
                 file = payload.file,
                 error = UploadEncryptedLogError.MissingFile,
                 willRetry = false
             )
-            return
+            _uploadState.value = uploadState
+            Log.e(TAG, "Failed to upload encrypted log with uuid: ${uploadState.uuid} [Reason: ${uploadState.error}]")
         }
         val encryptedLog = EncryptedLog(
             uuid = payload.uuid,
@@ -150,10 +153,12 @@ internal class EncryptedLogStore private constructor(
 
     private suspend fun handleSuccessfulUpload(encryptedLog: EncryptedLog) {
         deleteEncryptedLog(encryptedLog)
-        _uploadState.value = OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully(
+        val uploadState = OnEncryptedLogUploaded.EncryptedLogUploadedSuccessfully(
             uuid = encryptedLog.uuid,
             file = encryptedLog.file
         )
+        _uploadState.value = uploadState
+        Log.d(TAG, "Successfully uploaded encrypted log with uuid: ${uploadState.uuid}")
         uploadNext()
     }
 
@@ -188,12 +193,14 @@ internal class EncryptedLogStore private constructor(
             )
         }
 
-        _uploadState.value = OnEncryptedLogUploaded.EncryptedLogFailedToUpload(
+        val uploadState = OnEncryptedLogUploaded.EncryptedLogFailedToUpload(
             uuid = encryptedLog.uuid,
             file = encryptedLog.file,
             error = error,
             willRetry = !isFinalFailure
         )
+        _uploadState.value = uploadState
+        Log.e(TAG, "Failed to upload encrypted log with uuid: ${uploadState.uuid} [Reason: ${uploadState.error}]")
         // If a log failed to upload for the final time, we don't need to add any delay since the log is the problem.
         // Otherwise, the only special case that requires an extra long delay is `TOO_MANY_REQUESTS` upload error.
         if (isFinalFailure) {
