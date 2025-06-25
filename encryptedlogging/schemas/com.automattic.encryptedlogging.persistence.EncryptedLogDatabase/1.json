@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "f536d87beb9b4766f20956caac6350d6",
+    "identityHash": "84a883e714afb2367a5539cdf4a47b16",
     "entities": [
       {
         "tableName": "EncryptedLogEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuid` TEXT, `filePath` TEXT, `uploadStateDbValue` INTEGER NOT NULL, `failedCount` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuid` TEXT, `filePath` TEXT, `uploadState` INTEGER NOT NULL, `failedCount` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -25,8 +25,8 @@
             "affinity": "TEXT"
           },
           {
-            "fieldPath": "uploadStateDbValue",
-            "columnName": "uploadStateDbValue",
+            "fieldPath": "uploadState",
+            "columnName": "uploadState",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -47,7 +47,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f536d87beb9b4766f20956caac6350d6')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '84a883e714afb2367a5539cdf4a47b16')"
     ]
   }
 }
