@@ -102,3 +102,10 @@ project.afterEvaluate {
         }
     }
 }
+
+tasks.whenTaskAdded {
+    if (name == "generateReleaseBuildConfig") {
+        enabled = false
+        println("✅ Disabled task: $name")
+    }
+}
