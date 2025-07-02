@@ -65,11 +65,12 @@ class EncryptedLogDaoTest {
         // Assert that the encrypted logs from the DB is the same as the ones we inserted (ignoring id)
         uuidList.forEachIndexed { index, uuid ->
             val log = sut.getEncryptedLog(uploadState)
+            checkNotNull(log) { "Log with UUID $uuid not found in the database" }
             assertThat(log)
                 .usingRecursiveComparison()
                 .ignoringFields("id")
                 .isEqualTo(logsToBeInserted[index])
-            sut.deleteEncryptedLog(log!!) // So that the next encrypted log can be fetched correctly
+            sut.deleteEncryptedLog(log) // So that the next encrypted log can be fetched correctly
         }
     }
 

@@ -2,12 +2,12 @@ package com.automattic.encryptedlogging.store
 
 import java.io.File
 
-public sealed class OnEncryptedLogUploaded(
-    public val uuid: String,
-    public val file: File
+internal sealed class OnEncryptedLogUploaded(
+    val uuid: String,
+    val file: File
 ) : OnChanged<UploadEncryptedLogError>() {
-    public class EncryptedLogUploadedSuccessfully(uuid: String, file: File) : OnEncryptedLogUploaded(uuid, file)
-    public class EncryptedLogFailedToUpload(
+    class EncryptedLogUploadedSuccessfully(uuid: String, file: File) : OnEncryptedLogUploaded(uuid, file)
+    class EncryptedLogFailedToUpload(
         uuid: String,
         file: File,
         error: UploadEncryptedLogError,

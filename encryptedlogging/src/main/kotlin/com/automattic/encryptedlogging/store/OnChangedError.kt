@@ -1,3 +1,3 @@
 package com.automattic.encryptedlogging.store
 
-public interface OnChangedError
+internal interface OnChangedError

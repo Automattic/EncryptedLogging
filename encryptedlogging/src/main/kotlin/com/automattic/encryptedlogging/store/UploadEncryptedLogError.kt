@@ -1,14 +1,14 @@
 package com.automattic.encryptedlogging.store
 
-public sealed class UploadEncryptedLogError : OnChangedError {
-    public class Unknown(
-        public val statusCode: Int? = null,
-        public val message: String? = null
+internal sealed class UploadEncryptedLogError : OnChangedError {
+    class Unknown(
+        val statusCode: Int? = null,
+        val message: String? = null
     ) : UploadEncryptedLogError()
 
-    public object InvalidRequest : UploadEncryptedLogError()
-    public object TooManyRequests : UploadEncryptedLogError()
-    public object NoConnection : UploadEncryptedLogError()
-    public object MissingFile : UploadEncryptedLogError()
-    public object UnsatisfiedLinkException : UploadEncryptedLogError()
+    object InvalidRequest : UploadEncryptedLogError()
+    object TooManyRequests : UploadEncryptedLogError()
+    object NoConnection : UploadEncryptedLogError()
+    object MissingFile : UploadEncryptedLogError()
+    object UnsatisfiedLinkException : UploadEncryptedLogError()
 }
