@@ -1,5 +1,6 @@
 package com.automattic.encryptedlogging
 
+import android.content.Context
 import java.io.File
 
 public interface EncryptedLogging {
@@ -23,4 +24,33 @@ public interface EncryptedLogging {
      * A method for the client to use to reset the upload states. Usually called on app initialization, before [uploadEncryptedLogs]
      */
     public fun resetUploadStates()
+
+    public companion object {
+
+        private var instance: EncryptedLogging? = null
+
+        /**
+         * Creates an instance of [EncryptedLogging] using the provided context, encrypted logging key and client
+         * secret.
+         *
+         * @param context The Android context to use for initializing the logging system.
+         * @param encryptedLoggingKey The key used for encrypting logs.
+         * @param clientSecret The secret used for authenticating requests to the logging server.
+         * @return An instance of [EncryptedLogging].
+         */
+        public fun getInstance(
+            context: Context,
+            encryptedLoggingKey: String,
+            clientSecret: String,
+        ): EncryptedLogging {
+            if (instance == null) {
+                instance = AutomatticEncryptedLogging(
+                    context = context,
+                    encryptedLoggingKey = encryptedLoggingKey,
+                    clientSecret = clientSecret
+                )
+            }
+            return checkNotNull(instance) { "Failed to create EncryptedLogging instance" }
+        }
+    }
 }

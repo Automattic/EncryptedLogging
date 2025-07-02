@@ -16,7 +16,7 @@ import com.goterl.lazysodium.utils.Key
 import kotlinx.coroutines.launch
 import java.io.File
 
-public class AutomatticEncryptedLogging(
+internal class AutomatticEncryptedLogging(
     context: Context,
     encryptedLoggingKey: String,
     clientSecret: String,
