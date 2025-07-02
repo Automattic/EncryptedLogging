@@ -19,8 +19,8 @@ internal data class EncryptedLog(
         fun fromEncryptedLogEntity(encryptedLogEntity: EncryptedLogEntity) =
             EncryptedLog(
                 id = encryptedLogEntity.id,
-                uuid = checkNotNull(encryptedLogEntity.uuid) { "UUID cannot be null" },
-                file = File(checkNotNull(encryptedLogEntity.filePath) { "File path cannot be null" }),
+                uuid = encryptedLogEntity.uuid,
+                file = File(encryptedLogEntity.filePath),
                 uploadState = encryptedLogEntity.uploadState,
                 failedCount = encryptedLogEntity.failedCount,
             )
@@ -35,12 +35,11 @@ internal data class EncryptedLogEntity(
      * Synthetic primary key used to effectively order encrypted logs without depending on the date created.
      */
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val uuid: String? = null,
-    val filePath: String? = null,
-    val uploadState: EncryptedLogUploadState = EncryptedLogUploadState.QUEUED,
-    val failedCount: Int = 0,
+    val uuid: String,
+    val filePath: String,
+    val uploadState: EncryptedLogUploadState,
+    val failedCount: Int,
 ) {
-
     companion object Companion {
         fun fromEncryptedLog(encryptedLog: EncryptedLog) = EncryptedLogEntity(
             id = encryptedLog.id,
