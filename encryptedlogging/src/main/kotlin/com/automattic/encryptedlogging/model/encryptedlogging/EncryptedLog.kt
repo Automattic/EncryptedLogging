@@ -19,9 +19,8 @@ internal data class EncryptedLog(
         fun fromEncryptedLogEntity(encryptedLogEntity: EncryptedLogEntity) =
             EncryptedLog(
                 id = encryptedLogEntity.id,
-                // Crash if values are missing which shouldn't happen if there are no logic errors
-                uuid = encryptedLogEntity.uuid!!,
-                file = File(encryptedLogEntity.filePath),
+                uuid = checkNotNull(encryptedLogEntity.uuid) { "UUID cannot be null" },
+                file = File(checkNotNull(encryptedLogEntity.filePath) { "File path cannot be null" }),
                 uploadState = encryptedLogEntity.uploadState,
                 failedCount = encryptedLogEntity.failedCount,
             )

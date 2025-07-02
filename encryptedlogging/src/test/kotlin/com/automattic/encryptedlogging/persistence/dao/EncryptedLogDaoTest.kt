@@ -69,7 +69,7 @@ class EncryptedLogDaoTest {
                 .usingRecursiveComparison()
                 .ignoringFields("id")
                 .isEqualTo(logsToBeInserted[index])
-            sut.deleteEncryptedLog(log!!) // So that the next encrypted log can be fetched correctly
+            log?.let { sut.deleteEncryptedLog(it) } // So that the next encrypted log can be fetched correctly
         }
     }
 
