@@ -103,8 +103,9 @@ project.afterEvaluate {
     }
 }
 
-tasks.named("generateReleaseBuildConfig").configure {
-    enabled = false
-    println("✅ Disabled task: generateReleaseBuildConfig")
-}
+tasks.whenTaskAdded {
+    if (name == "generateReleaseBuildConfig") {
+        enabled = false
+        println("✅ Disabled task: $name")
+    }
 }
