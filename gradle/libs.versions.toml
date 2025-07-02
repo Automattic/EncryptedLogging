@@ -12,6 +12,7 @@ automattic-publish = "0.10.0"
 jna = "5.17.0@aar"
 junit = "4.13.2"
 kotlin = "2.1.21"
+kotlinx-binary-compatibility-validator = "0.18.0"
 kotlinx-coroutines = '1.10.2'
 ksp = "2.1.21-2.0.2"
 robolectric = "4.14.1"
@@ -45,4 +46,5 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 androidx-room = { id = "androidx.room", version.ref = "androidx-room" }
 automattic-publish = { id = "com.automattic.android.publish-to-s3", version.ref = "automattic-publish" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlinx-binary-compatibility-validator = { id = 'org.jetbrains.kotlinx.binary-compatibility-validator', version.ref = 'kotlinx-binary-compatibility-validator' }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

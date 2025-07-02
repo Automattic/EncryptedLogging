@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlinx.binary.compatibility.validator)
     alias(libs.plugins.ksp)
     alias(libs.plugins.automattic.publish)
 }

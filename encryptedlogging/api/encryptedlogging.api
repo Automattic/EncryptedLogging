@@ -1,0 +1,77 @@
+public final class com/automattic/encryptedlogging/AutomatticEncryptedLogging : com/automattic/encryptedlogging/EncryptedLogging {
+	public fun <init> (Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)V
+	public fun enqueueSendingEncryptedLogs (Ljava/lang/String;Ljava/io/File;Z)V
+	public fun resetUploadStates ()V
+	public fun uploadEncryptedLogs ()V
+}
+
+public final class com/automattic/encryptedlogging/BuildConfig {
+	public static final field APP_SECRET Ljava/lang/String;
+	public static final field BUILD_TYPE Ljava/lang/String;
+	public static final field DEBUG Z
+	public static final field ENCRYPTION_KEY Ljava/lang/String;
+	public static final field LIBRARY_PACKAGE_NAME Ljava/lang/String;
+	public fun <init> ()V
+}
+
+public abstract interface class com/automattic/encryptedlogging/EncryptedLogging {
+	public abstract fun enqueueSendingEncryptedLogs (Ljava/lang/String;Ljava/io/File;Z)V
+	public abstract fun resetUploadStates ()V
+	public abstract fun uploadEncryptedLogs ()V
+}
+
+public class com/automattic/encryptedlogging/store/OnChanged {
+	public fun <init> ()V
+	public final fun getError ()Lcom/automattic/encryptedlogging/store/OnChangedError;
+	public final fun isError ()Z
+	public final fun setError (Lcom/automattic/encryptedlogging/store/OnChangedError;)V
+}
+
+public abstract interface class com/automattic/encryptedlogging/store/OnChangedError {
+}
+
+public abstract class com/automattic/encryptedlogging/store/OnEncryptedLogUploaded : com/automattic/encryptedlogging/store/OnChanged {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/io/File;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getFile ()Ljava/io/File;
+	public final fun getUuid ()Ljava/lang/String;
+}
+
+public final class com/automattic/encryptedlogging/store/OnEncryptedLogUploaded$EncryptedLogFailedToUpload : com/automattic/encryptedlogging/store/OnEncryptedLogUploaded {
+	public fun <init> (Ljava/lang/String;Ljava/io/File;Lcom/automattic/encryptedlogging/store/UploadEncryptedLogError;Z)V
+}
+
+public final class com/automattic/encryptedlogging/store/OnEncryptedLogUploaded$EncryptedLogUploadedSuccessfully : com/automattic/encryptedlogging/store/OnEncryptedLogUploaded {
+	public fun <init> (Ljava/lang/String;Ljava/io/File;)V
+}
+
+public abstract class com/automattic/encryptedlogging/store/UploadEncryptedLogError : com/automattic/encryptedlogging/store/OnChangedError {
+}
+
+public final class com/automattic/encryptedlogging/store/UploadEncryptedLogError$InvalidRequest : com/automattic/encryptedlogging/store/UploadEncryptedLogError {
+	public static final field INSTANCE Lcom/automattic/encryptedlogging/store/UploadEncryptedLogError$InvalidRequest;
+}
+
+public final class com/automattic/encryptedlogging/store/UploadEncryptedLogError$MissingFile : com/automattic/encryptedlogging/store/UploadEncryptedLogError {
+	public static final field INSTANCE Lcom/automattic/encryptedlogging/store/UploadEncryptedLogError$MissingFile;
+}
+
+public final class com/automattic/encryptedlogging/store/UploadEncryptedLogError$NoConnection : com/automattic/encryptedlogging/store/UploadEncryptedLogError {
+	public static final field INSTANCE Lcom/automattic/encryptedlogging/store/UploadEncryptedLogError$NoConnection;
+}
+
+public final class com/automattic/encryptedlogging/store/UploadEncryptedLogError$TooManyRequests : com/automattic/encryptedlogging/store/UploadEncryptedLogError {
+	public static final field INSTANCE Lcom/automattic/encryptedlogging/store/UploadEncryptedLogError$TooManyRequests;
+}
+
+public final class com/automattic/encryptedlogging/store/UploadEncryptedLogError$Unknown : com/automattic/encryptedlogging/store/UploadEncryptedLogError {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getStatusCode ()Ljava/lang/Integer;
+}
+
+public final class com/automattic/encryptedlogging/store/UploadEncryptedLogError$UnsatisfiedLinkException : com/automattic/encryptedlogging/store/UploadEncryptedLogError {
+	public static final field INSTANCE Lcom/automattic/encryptedlogging/store/UploadEncryptedLogError$UnsatisfiedLinkException;
+}
+
