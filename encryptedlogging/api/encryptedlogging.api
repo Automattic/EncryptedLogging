@@ -1,12 +1,3 @@
-public final class com/automattic/encryptedlogging/BuildConfig {
-	public static final field APP_SECRET Ljava/lang/String;
-	public static final field BUILD_TYPE Ljava/lang/String;
-	public static final field DEBUG Z
-	public static final field ENCRYPTION_KEY Ljava/lang/String;
-	public static final field LIBRARY_PACKAGE_NAME Ljava/lang/String;
-	public fun <init> ()V
-}
-
 public abstract interface class com/automattic/encryptedlogging/EncryptedLogging {
 	public static final field Companion Lcom/automattic/encryptedlogging/EncryptedLogging$Companion;
 	public abstract fun enqueueSendingEncryptedLogs (Ljava/lang/String;Ljava/io/File;Z)V
