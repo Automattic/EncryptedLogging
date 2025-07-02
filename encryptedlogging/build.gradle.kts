@@ -107,4 +107,3 @@ tasks.named("generateReleaseBuildConfig").configure {
     enabled = false
     println("✅ Disabled task: generateReleaseBuildConfig")
 }
-}
