@@ -1,6 +1,8 @@
 package com.automattic.encryptedlogging
 
 import android.content.Context
+import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
+import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 
 public interface EncryptedLogging {
@@ -24,6 +26,11 @@ public interface EncryptedLogging {
      * A method for the client to use to reset the upload states. Usually called on app initialization, before [uploadEncryptedLogs]
      */
     public fun resetUploadStates()
+
+    /**
+     * A method for the client to use to observe the upload result of the encrypted logs.
+     */
+    public fun observeEncryptedLogsUploadResult(): StateFlow<OnEncryptedLogUploaded?>
 
     public companion object {
 
