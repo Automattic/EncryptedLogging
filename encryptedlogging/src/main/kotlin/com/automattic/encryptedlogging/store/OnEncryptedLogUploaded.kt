@@ -5,7 +5,7 @@ import java.io.File
 public sealed class OnEncryptedLogUploaded(
     public val uuid: String,
     public val file: File
-) : OnChanged<UploadEncryptedLogError>() {
+) {
     public class EncryptedLogUploadedSuccessfully(
         uuid: String,
         file: File
@@ -14,11 +14,7 @@ public sealed class OnEncryptedLogUploaded(
     public class EncryptedLogFailedToUpload(
         uuid: String,
         file: File,
-        error: UploadEncryptedLogError,
+        public val error: UploadEncryptedLogError,
         public val willRetry: Boolean
-    ) : OnEncryptedLogUploaded(uuid, file) {
-        init {
-            this.error = error
-        }
-    }
+    ) : OnEncryptedLogUploaded(uuid, file)
 }

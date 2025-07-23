@@ -10,17 +10,7 @@ public final class com/automattic/encryptedlogging/EncryptedLogging$Companion {
 	public final fun getInstance (Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Lcom/automattic/encryptedlogging/EncryptedLogging;
 }
 
-public class com/automattic/encryptedlogging/store/OnChanged {
-	public fun <init> ()V
-	public final fun getError ()Lcom/automattic/encryptedlogging/store/OnChangedError;
-	public final fun isError ()Z
-	public final fun setError (Lcom/automattic/encryptedlogging/store/OnChangedError;)V
-}
-
-public abstract interface class com/automattic/encryptedlogging/store/OnChangedError {
-}
-
-public abstract class com/automattic/encryptedlogging/store/OnEncryptedLogUploaded : com/automattic/encryptedlogging/store/OnChanged {
+public abstract class com/automattic/encryptedlogging/store/OnEncryptedLogUploaded {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/io/File;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getFile ()Ljava/io/File;
 	public final fun getUuid ()Ljava/lang/String;
@@ -28,6 +18,7 @@ public abstract class com/automattic/encryptedlogging/store/OnEncryptedLogUpload
 
 public final class com/automattic/encryptedlogging/store/OnEncryptedLogUploaded$EncryptedLogFailedToUpload : com/automattic/encryptedlogging/store/OnEncryptedLogUploaded {
 	public fun <init> (Ljava/lang/String;Ljava/io/File;Lcom/automattic/encryptedlogging/store/UploadEncryptedLogError;Z)V
+	public final fun getError ()Lcom/automattic/encryptedlogging/store/UploadEncryptedLogError;
 	public final fun getWillRetry ()Z
 }
 
@@ -35,7 +26,7 @@ public final class com/automattic/encryptedlogging/store/OnEncryptedLogUploaded$
 	public fun <init> (Ljava/lang/String;Ljava/io/File;)V
 }
 
-public abstract class com/automattic/encryptedlogging/store/UploadEncryptedLogError : com/automattic/encryptedlogging/store/OnChangedError {
+public abstract class com/automattic/encryptedlogging/store/UploadEncryptedLogError {
 }
 
 public final class com/automattic/encryptedlogging/store/UploadEncryptedLogError$InvalidRequest : com/automattic/encryptedlogging/store/UploadEncryptedLogError {
