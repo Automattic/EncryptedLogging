@@ -25,7 +25,7 @@ dependency {
 fun provideEncryptedLogging(
     @ApplicationContext context: Context
 ): EncryptedLogging {
-    return AutomatticEncryptedLogging(
+    return EncryptedLogging.getInstance(
         context,
         // Can be found in secrets
         encryptedLoggingKey = BuildConfig.ENCRYPTION_KEY,
@@ -48,9 +48,7 @@ class MyApplication : Application() {
         encryptedLogging.resetUploadStates()
 
         // Launch upload of stored logs in app's coroutine scope
-        applicationScope.launch {
-            encryptedLogging.uploadEncryptedLogs()
-        }
+        encryptedLogging.uploadEncryptedLogs()
     }
 }
 ```
