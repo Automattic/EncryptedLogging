@@ -14,7 +14,7 @@ import com.automattic.encryptedlogging.store.EncryptedLogStore
 import com.automattic.encryptedlogging.store.OnEncryptedLogUploaded
 import com.automattic.encryptedlogging.utils.PreferenceUtils
 import com.goterl.lazysodium.utils.Key
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -81,7 +81,7 @@ internal class AutomatticEncryptedLogging(
         }
     }
 
-    override fun observeEncryptedLogsUploadResult(): StateFlow<OnEncryptedLogUploaded?> {
+    override fun observeEncryptedLogsUploadResult(): Flow<OnEncryptedLogUploaded?> {
         return encryptedLogStore.uploadState
     }
 }

@@ -1,7 +1,7 @@
 public abstract interface class com/automattic/encryptedlogging/EncryptedLogging {
 	public static final field Companion Lcom/automattic/encryptedlogging/EncryptedLogging$Companion;
 	public abstract fun enqueueSendingEncryptedLogs (Ljava/lang/String;Ljava/io/File;Z)V
-	public abstract fun observeEncryptedLogsUploadResult ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun observeEncryptedLogsUploadResult ()Lkotlinx/coroutines/flow/Flow;
 	public abstract fun resetUploadStates ()V
 	public abstract fun uploadEncryptedLogs ()V
 }
