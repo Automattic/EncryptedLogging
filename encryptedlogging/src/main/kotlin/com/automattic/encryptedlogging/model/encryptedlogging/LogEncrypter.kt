@@ -1,12 +1,16 @@
 package com.automattic.encryptedlogging.model.encryptedlogging
 
 import android.util.Base64
+import android.util.Log
 import com.goterl.lazysodium.interfaces.SecretStream
 import com.goterl.lazysodium.interfaces.SecretStream.State
 import com.goterl.lazysodium.utils.Key
+import java.util.Locale
 
 private const val ENCODED_ENCRYPTED_KEY_LENGTH = 108
 private const val ENCODED_HEADER_LENGTH = 32
+// The API accepts logs up to 10MB, but we leave enough headroom for encoding overhead
+private const val MAX_LOG_SIZE = 5 * 1024 * 1024 // 5MB
 
 internal data class EncryptedLoggingKey(val publicKey: Key)
 
@@ -17,27 +21,48 @@ internal data class EncryptedLoggingKey(val publicKey: Key)
  *
  */
 internal class LogEncrypter(private val encryptedLoggingKey: EncryptedLoggingKey) {
+    companion object {
+        private val TAG = LogEncrypter::class.java.simpleName
+    }
+
     /**
      * Encrypts the given [text]. It also adds the given [uuid] to its headers.
      *
      * @param text Text contents to be encrypted
      * @param uuid Uuid for the encrypted log
      */
-    fun encrypt(text: String, uuid: String): String = buildString {
-        val state = State.ByReference()
-        append(buildHeader(uuid, state))
-        val lines = text.lines()
-        lines.asSequence().mapIndexed { index, line ->
-            if (index + 1 >= lines.size) {
-                // If it's the last element
-                line
-            } else {
-                "$line\n"
-            }
-        }.forEach { line ->
-            append(buildMessage(line, state))
+    fun encrypt(text: String, uuid: String): String {
+        val trimmedText = if (text.length > MAX_LOG_SIZE) {
+            Log.w(TAG, "Log with uuid $uuid is too big (${text.length.toMB()}mb), " +
+                    "max allowed log size is ${MAX_LOG_SIZE.toMB()}mb; log got trimmed.")
+            text.takeLast(MAX_LOG_SIZE) // Keep the last N bytes (most recent logs)
+        } else {
+            text
         }
-        append(buildFooter(state))
+        return buildString {
+            val state = State.ByReference()
+            append(buildHeader(uuid, state))
+            val lines = trimmedText.lines()
+            lines.asSequence().mapIndexed { index, line ->
+                if (index + 1 >= lines.size) {
+                    // If it's the last element
+                    line
+                } else {
+                    "$line\n"
+                }
+            }.forEach { line ->
+                append(buildMessage(line, state))
+            }
+            append(buildFooter(state))
+        }
+    }
+
+    private fun Int.toMB(): String {
+        return String.format(
+            Locale.US,
+            "%.2f",
+            this.toFloat() / 1024.0 / 1024.0
+        )
     }
 
     /**
