@@ -136,19 +136,16 @@ internal class EncryptedLogStore private constructor(
         }
         try {
             val encryptedText = logEncrypter.encrypt(text = encryptedLog.file.readText(), uuid = encryptedLog.uuid)
-            Log.d(TAG, "Successfully encrypted encrypted log with uuid: ${encryptedLog.uuid} " +
-                    "and length: ${encryptedText.length}")
 
             // Update the upload state of the log
             encryptedLog.copy(uploadState = EncryptedLogUploadState.UPLOADING).let {
                 encryptedLogDao.upsertEncryptedLog(EncryptedLogEntity.fromEncryptedLog(it))
             }
 
-            handleSuccessfulUpload(encryptedLog)
-//            when (val result = encryptedLogRestClient.uploadLog(encryptedLog.uuid, encryptedText)) {
-//                is UploadEncryptedLogResult.LogUploaded -> handleSuccessfulUpload(encryptedLog)
-//                is UploadEncryptedLogResult.LogUploadFailed -> handleFailedUpload(encryptedLog, result.error)
-//            }
+            when (val result = encryptedLogRestClient.uploadLog(encryptedLog.uuid, encryptedText)) {
+                is UploadEncryptedLogResult.LogUploaded -> handleSuccessfulUpload(encryptedLog)
+                is UploadEncryptedLogResult.LogUploadFailed -> handleFailedUpload(encryptedLog, result.error)
+            }
         } catch (@Suppress("unused") e: UnsatisfiedLinkError) {
             handleFailedUpload(encryptedLog, UploadEncryptedLogError.UnsatisfiedLinkException)
         }
@@ -161,7 +158,7 @@ internal class EncryptedLogStore private constructor(
             file = encryptedLog.file
         )
         _uploadState.value = uploadState
-        Log.d(TAG, "Successfully encrypted and deleted local log with uuid: ${uploadState.uuid}")
+        Log.d(TAG, "Successfully uploaded encrypted log with uuid: ${uploadState.uuid}")
         uploadNext()
     }
 
