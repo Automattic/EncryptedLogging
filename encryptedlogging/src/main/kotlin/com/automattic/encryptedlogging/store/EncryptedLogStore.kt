@@ -147,6 +147,7 @@ internal class EncryptedLogStore private constructor(
                 uuid = encryptedLog.uuid
             )
         }
+        Log.d(TAG, "The size of encrypted text with uuid ${encryptedLog.uuid} is: ${encryptedText.length.toMB()}mb")
         uploadEncryptedLog(encryptedLog, encryptedText)
     }
 
