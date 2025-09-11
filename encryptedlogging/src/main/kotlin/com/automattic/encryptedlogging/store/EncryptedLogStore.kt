@@ -30,8 +30,8 @@ private const val MAX_RETRY_COUNT = 3
 
 private const val HTTP_STATUS_CODE_500 = 500
 private const val HTTP_STATUS_CODE_599 = 599
-
-private const val MAX_IN_MEMORY_SIZE = 10 * 1024 * 1024 // 10MB
+// The API accepts logs up to 10MB, but we leave enough room for the encryption overhead
+private const val MAX_LOG_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
 internal class EncryptedLogStore private constructor(
     private val encryptedLogRestClient: EncryptedLogRestClient,
@@ -136,12 +136,12 @@ internal class EncryptedLogStore private constructor(
             uploadNext()
             return
         }
-        val encryptedText = if (encryptedLog.file.length() <= MAX_IN_MEMORY_SIZE) {
+        val encryptedText = if (encryptedLog.file.length() <= MAX_LOG_FILE_SIZE) {
             logEncrypter.encrypt(
                 text = encryptedLog.file.readText(),
                 uuid = encryptedLog.uuid
             )
-        } else { // Large files: extract only the last MAX_IN_MEMORY_SIZE
+        } else { // Large files: extract only the last MAX_LOG_FILE_SIZE
             logEncrypter.encrypt(
                 text = truncateFile(encryptedLog.file, encryptedLog.uuid),
                 uuid = encryptedLog.uuid
@@ -170,8 +170,8 @@ internal class EncryptedLogStore private constructor(
     private fun truncateFile(file: File, uuid: String): String {
         val tempFile = File.createTempFile("truncated_", ".log", file.parentFile)
         try {
-            // Calculate how many bytes to skip from the beginning to keep last MAX_IN_MEMORY_SIZE
-            val skipBytes = file.length() - MAX_IN_MEMORY_SIZE
+            // Calculate how many bytes to skip from the beginning to keep last MAX_LOG_FILE_SIZE
+            val skipBytes = file.length() - MAX_LOG_FILE_SIZE
             file.inputStream().use { input ->
                 input.skip(skipBytes)
                 tempFile.outputStream().use { output ->
@@ -179,7 +179,7 @@ internal class EncryptedLogStore private constructor(
                 }
             }
             Log.w(TAG, "Log file with uuid $uuid is too big (${file.length().toMB()}mb)," +
-                    " max allowed in-memory size is ${MAX_IN_MEMORY_SIZE.toMB()}mb; log file got truncated.")
+                    " max allowed log file size is ${MAX_LOG_FILE_SIZE.toMB()}mb; log file got truncated.")
             return tempFile.readText()
         } finally { // Always clean up the temp file
             tempFile.delete()
