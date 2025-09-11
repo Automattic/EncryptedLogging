@@ -2,13 +2,14 @@ package com.automattic.encryptedlogging.model.encryptedlogging
 
 import android.util.Base64
 import android.util.Log
+import com.automattic.encryptedlogging.utils.Utils.toMB
 import com.goterl.lazysodium.interfaces.SecretStream
 import com.goterl.lazysodium.interfaces.SecretStream.State
 import com.goterl.lazysodium.utils.Key
-import java.util.Locale
 
 private const val ENCODED_ENCRYPTED_KEY_LENGTH = 108
 private const val ENCODED_HEADER_LENGTH = 32
+
 // The API accepts logs up to 10MB, but we leave enough headroom for encoding overhead
 private const val MAX_LOG_SIZE = 5 * 1024 * 1024 // 5MB
 
@@ -55,14 +56,6 @@ internal class LogEncrypter(private val encryptedLoggingKey: EncryptedLoggingKey
             }
             append(buildFooter(state))
         }
-    }
-
-    private fun Int.toMB(): String {
-        return String.format(
-            Locale.US,
-            "%.2f",
-            this.toFloat() / 1024.0 / 1024.0
-        )
     }
 
     /**
