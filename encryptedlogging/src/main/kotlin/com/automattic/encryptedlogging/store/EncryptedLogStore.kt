@@ -10,6 +10,7 @@ import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.Encrypted
 import com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog.UploadEncryptedLogResult
 import com.automattic.encryptedlogging.persistence.dao.EncryptedLogDao
 import com.automattic.encryptedlogging.utils.PreferenceUtils.PreferenceUtilsWrapper
+import com.automattic.encryptedlogging.utils.Utils.toMB
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
@@ -29,6 +30,8 @@ private const val MAX_RETRY_COUNT = 3
 
 private const val HTTP_STATUS_CODE_500 = 500
 private const val HTTP_STATUS_CODE_599 = 599
+// The API accepts logs up to 10MB, but we leave enough room for the encryption overhead
+private const val MAX_LOG_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
 internal class EncryptedLogStore private constructor(
     private val encryptedLogRestClient: EncryptedLogRestClient,
@@ -126,7 +129,6 @@ internal class EncryptedLogStore private constructor(
         )
     }
 
-    @Suppress("SwallowedException")
     private suspend fun uploadEncryptedLog(encryptedLog: EncryptedLog) {
         // If the log file doesn't exist, fail immediately and try the next log file
         if (!isValidFile(encryptedLog.file)) {
@@ -134,9 +136,24 @@ internal class EncryptedLogStore private constructor(
             uploadNext()
             return
         }
-        try {
-            val encryptedText = logEncrypter.encrypt(text = encryptedLog.file.readText(), uuid = encryptedLog.uuid)
+        val encryptedText = if (encryptedLog.file.length() <= MAX_LOG_FILE_SIZE) {
+            logEncrypter.encrypt(
+                text = encryptedLog.file.readText(),
+                uuid = encryptedLog.uuid
+            )
+        } else { // Large files: extract only the last MAX_LOG_FILE_SIZE
+            logEncrypter.encrypt(
+                text = truncateFile(encryptedLog.file, encryptedLog.uuid),
+                uuid = encryptedLog.uuid
+            )
+        }
+        Log.d(TAG, "The size of encrypted text with uuid ${encryptedLog.uuid} is: ${encryptedText.length.toMB()}mb")
+        uploadEncryptedLog(encryptedLog, encryptedText)
+    }
 
+    @Suppress("SwallowedException")
+    private suspend fun uploadEncryptedLog(encryptedLog: EncryptedLog, encryptedText: String) {
+        try {
             // Update the upload state of the log
             encryptedLog.copy(uploadState = EncryptedLogUploadState.UPLOADING).let {
                 encryptedLogDao.upsertEncryptedLog(EncryptedLogEntity.fromEncryptedLog(it))
@@ -148,6 +165,25 @@ internal class EncryptedLogStore private constructor(
             }
         } catch (@Suppress("unused") e: UnsatisfiedLinkError) {
             handleFailedUpload(encryptedLog, UploadEncryptedLogError.UnsatisfiedLinkException)
+        }
+    }
+
+    private fun truncateFile(file: File, uuid: String): String {
+        val tempFile = File.createTempFile("truncated_", ".log", file.parentFile)
+        try {
+            // Calculate how many bytes to skip from the beginning to keep last MAX_LOG_FILE_SIZE
+            val skipBytes = file.length() - MAX_LOG_FILE_SIZE
+            file.inputStream().use { input ->
+                input.skip(skipBytes)
+                tempFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            Log.w(TAG, "Log file with uuid $uuid is too big (${file.length().toMB()}mb)," +
+                    " max allowed log file size is ${MAX_LOG_FILE_SIZE.toMB()}mb; log file got truncated.")
+            return tempFile.readText()
+        } finally { // Always clean up the temp file
+            tempFile.delete()
         }
     }
 
