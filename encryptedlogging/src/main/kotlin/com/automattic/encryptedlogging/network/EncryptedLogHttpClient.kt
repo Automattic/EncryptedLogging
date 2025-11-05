@@ -8,14 +8,15 @@ private const val AUTHORIZATION_HEADER = "Authorization"
 private const val CONTENT_TYPE_HEADER = "Content-Type"
 private const val CONTENT_TYPE_JSON = "application/json"
 private const val UUID_HEADER = "log-uuid"
-private const val UPLOAD_URL = "https://public-api.wordpress.com/rest/v1.1/encrypted-logging/"
+private const val DEFAULT_UPLOAD_URL = "https://public-api.wordpress.com/rest/v1.1/encrypted-logging/"
 
 internal class EncryptedLogHttpClient(
-    private val clientSecret: String
+    private val clientSecret: String,
+    private val uploadUrl: String = DEFAULT_UPLOAD_URL
 ) {
     @Throws(IOException::class)
     fun uploadLog(logUuid: String, contents: String): HttpResponse {
-        val url = URL(UPLOAD_URL)
+        val url = URL(uploadUrl)
         val connection = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
             doOutput = true

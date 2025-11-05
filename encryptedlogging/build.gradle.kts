@@ -76,6 +76,7 @@ dependencies {
     testImplementation(libs.assertj.core)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockwebserver)
     testImplementation(libs.robolectric)
     androidTestImplementation(libs.assertj.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
