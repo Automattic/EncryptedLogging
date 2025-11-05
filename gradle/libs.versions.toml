@@ -18,7 +18,6 @@ ksp = "2.1.21-2.0.2"
 robolectric = "4.14.1"
 terl-lazysodium-android = "5.2.0@aar"
 turbine = "1.2.1"
-volley = "1.2.1"
 
 [libraries]
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
@@ -39,7 +38,6 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 terl-lazysodium-android = { module = "com.goterl:lazysodium-android", version.ref = "terl-lazysodium-android" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
-volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "agp" }

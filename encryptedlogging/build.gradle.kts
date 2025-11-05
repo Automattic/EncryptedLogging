@@ -72,7 +72,6 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.volley)
     testImplementation(libs.androidx.test.core.ktx)
     testImplementation(libs.assertj.core)
     testImplementation(libs.junit)
