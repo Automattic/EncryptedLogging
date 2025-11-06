@@ -123,15 +123,17 @@ class EncryptedLogRestClientTest {
     }
 
     @Test
-    fun `uploadLog returns Unknown error with message for non-JSON error response`() {
+    fun `uploadLog returns Unknown error with statusCode and message for non-JSON error response`() {
         mockWebServer.enqueue(MockResponse().setResponseCode(500).setBody("Plain text error message"))
 
         val result = runBlocking {
             restClient.uploadLog(testLogUuid, testContents)
         }
 
-        assertThat(((result as UploadEncryptedLogResult.LogUploadFailed).error as UploadEncryptedLogError.Unknown).message)
-            .isEqualTo("Plain text error message")
+        ((result as UploadEncryptedLogResult.LogUploadFailed).error as UploadEncryptedLogError.Unknown).let { error ->
+            assertThat(error.statusCode).isEqualTo(500)
+            assertThat(error.message).isEqualTo("Plain text error message")
+        }
     }
 
     @Test

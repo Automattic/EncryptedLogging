@@ -36,7 +36,7 @@ internal class EncryptedLogRestClient(
             JSONObject(responseBody)
         } catch (jsonException: JSONException) {
             Log.e(TAG, "Received response not in JSON format: " + jsonException.message)
-            return UploadEncryptedLogError.Unknown(message = responseBody)
+            return UploadEncryptedLogError.Unknown(statusCode = statusCode, message = responseBody)
         }
         val errorMessage = json.getString("message")
         json.getString("error").let { errorType ->
