@@ -1,70 +1,52 @@
 package com.automattic.encryptedlogging.network.rest.wpcom.encryptedlog
 
 import android.util.Log
-import com.android.volley.NoConnectionError
-import com.android.volley.RequestQueue
-import com.android.volley.VolleyError
-import kotlinx.coroutines.suspendCancellableCoroutine
+import com.automattic.encryptedlogging.network.EncryptedLogHttpClient
+import com.automattic.encryptedlogging.store.UploadEncryptedLogError
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.json.JSONObject
-import com.automattic.encryptedlogging.network.EncryptedLogUploadRequest
-import com.automattic.encryptedlogging.store.UploadEncryptedLogError
-import kotlin.coroutines.resume
+import java.io.IOException
 
 private const val INVALID_REQUEST = "invalid-request"
 private const val TOO_MANY_REQUESTS = "too_many_requests"
 
 internal class EncryptedLogRestClient(
-    private val requestQueue: RequestQueue,
-    private val clientSecret: String,
+    private val httpClient: EncryptedLogHttpClient,
 ) {
     suspend fun uploadLog(logUuid: String, contents: String): UploadEncryptedLogResult {
-        return suspendCancellableCoroutine { cont ->
-            val request = EncryptedLogUploadRequest(logUuid, contents, clientSecret, {
-                cont.resume(UploadEncryptedLogResult.LogUploaded)
-            }, { error ->
-                cont.resume(UploadEncryptedLogResult.LogUploadFailed(mapError(error)))
-            })
-            cont.invokeOnCancellation { request.cancel() }
-            requestQueue.add(request)
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = httpClient.uploadLog(logUuid, contents)
+                if (response.statusCode in 200..299) {
+                    UploadEncryptedLogResult.LogUploaded
+                } else {
+                    UploadEncryptedLogResult.LogUploadFailed(mapError(response.statusCode, response.body))
+                }
+            } catch (e: IOException) {
+                UploadEncryptedLogResult.LogUploadFailed(UploadEncryptedLogError.NoConnection)
+            }
         }
     }
 
-    /**
-     * {
-     *   "error":"too_many_requests",
-     *   "message":"You're sending too many messages. Please slow down."
-     * }
-     * {
-     *   "error":"invalid-request",
-     *   "message":"Invalid UUID: uuids must only contain letters, numbers, dashes, and curly brackets"
-     * }
-     */
     @Suppress("ReturnCount")
-    private fun mapError(error: VolleyError): UploadEncryptedLogError {
-        if (error is NoConnectionError) {
-            return UploadEncryptedLogError.NoConnection
+    private fun mapError(statusCode: Int, responseBody: String): UploadEncryptedLogError {
+        val json = try {
+            JSONObject(responseBody)
+        } catch (jsonException: JSONException) {
+            Log.e(TAG, "Received response not in JSON format: " + jsonException.message)
+            return UploadEncryptedLogError.Unknown(statusCode = statusCode, message = responseBody)
         }
-        error.networkResponse?.let { networkResponse ->
-            val statusCode = networkResponse.statusCode
-            val dataString = String(networkResponse.data)
-            val json = try {
-                JSONObject(dataString)
-            } catch (jsonException: JSONException) {
-                Log.e(TAG, "Received response not in JSON format: " + jsonException.message)
-                return UploadEncryptedLogError.Unknown(message = dataString)
+        val errorMessage = json.getString("message")
+        json.getString("error").let { errorType ->
+            if (errorType == INVALID_REQUEST) {
+                return UploadEncryptedLogError.InvalidRequest
+            } else if (errorType == TOO_MANY_REQUESTS) {
+                return UploadEncryptedLogError.TooManyRequests
             }
-            val errorMessage = json.getString("message")
-            json.getString("error").let { errorType ->
-                if (errorType == INVALID_REQUEST) {
-                    return UploadEncryptedLogError.InvalidRequest
-                } else if (errorType == TOO_MANY_REQUESTS) {
-                    return UploadEncryptedLogError.TooManyRequests
-                }
-            }
-            return UploadEncryptedLogError.Unknown(statusCode, errorMessage)
         }
-        return UploadEncryptedLogError.Unknown()
+        return UploadEncryptedLogError.Unknown(statusCode, errorMessage)
     }
 
     companion object {
